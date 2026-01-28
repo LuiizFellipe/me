@@ -2,8 +2,8 @@
 
 Um portfólio interativo inspirado em sistemas operacionais, simulando um ambiente desktop completo rodando diretamente no navegador.
 
-![LuizOS Preview](https://via.placeholder.com/800x450?text=Preview+do+Portfolio) 
-*(Substitua este link por um screenshot real do seu projeto)*
+![LuizOS Preview](https://andrich.netlify.app) 
+
 
 ## 🚀 Sobre o Projeto
 
