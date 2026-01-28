@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const bootLogEl = document.getElementById('boot-log');
     const bootLoaderEl = document.getElementById('boot-loader');
     const bootStatusEl = document.getElementById('boot-status');
-    
+
     const desktopEl = document.getElementById('desktop-environment');
     const classicWrapperEl = document.getElementById('classic-wrapper');
     const bsodScreenEl = document.getElementById('bsod-screen');
@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let loaderWidth = 0;
     let highestZIndex = 100; // Para gerenciamento de janelas
     let inactivityTimer; // Para o BSOD
-    
+
     // Helper 'sleep'
     function sleep(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Atualiza os seletores no app de Configurações
         const themeRadio = document.querySelector(`#theme-selector input[value="${theme}"]`);
         if (themeRadio) themeRadio.checked = true;
-        
+
         document.querySelectorAll('.color-swatch').forEach(sw => {
             sw.classList.toggle('active', sw.dataset.accent === accent);
         });
@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
             bootContainerEl.scrollTop = bootContainerEl.scrollHeight;
             await sleep(100 + Math.random() * 50);
         }
-        
+
         bootStatusEl.textContent = "[ BOOT CONCLUÍDO ]";
         await sleep(500); // Pausa
         startPortfolio();
@@ -81,10 +81,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function startPortfolio() {
         bootContainerEl.style.transition = 'opacity 0.5s ease-out';
         bootContainerEl.style.opacity = '0';
-        
+
         setTimeout(() => {
             bootContainerEl.style.display = 'none';
-            
+
             if (isMobile()) {
                 classicWrapperEl.classList.remove('hidden');
                 classicWrapperEl.classList.add('visible');
@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }, 500);
     }
-    
+
     // --- 4. LÓGICA DO DESKTOP ENVIRONMENT ---
     function initDesktop() {
         initStartMenu();
@@ -116,7 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function initStartMenu() {
         const startButton = document.getElementById('start-button');
         const startMenu = document.getElementById('start-menu');
-        
+
         startButton.addEventListener('click', (e) => {
             e.stopPropagation(); // Impede que o clique feche o menu imediatamente
             startMenu.classList.toggle('hidden');
@@ -140,7 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (windowId) {
                 openWindow(windowId);
             }
-            
+
             // Fecha o menu após a ação
             startMenu.classList.add('hidden');
             startButton.classList.remove('active');
@@ -190,7 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!icon) return;
             const windowId = icon.dataset.window;
             const windowEl = document.getElementById(windowId);
-            
+
             if (windowEl.classList.contains('hidden')) openWindow(windowId);
             else if (icon.classList.contains('active')) closeWindow(windowId);
             else focusWindow(windowEl);
@@ -202,7 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!windowEl) return;
         windowEl.classList.remove('hidden');
         focusWindow(windowEl);
-        
+
         if (!document.querySelector(`.taskbar-app-icon[data-window="${windowId}"]`)) {
             const iconData = getWindowIconData(windowId);
             const iconEl = document.createElement('div');
@@ -213,7 +213,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             document.querySelector(`.taskbar-app-icon[data-window="${windowId}"]`).classList.add('active');
         }
-        if(windowId === 'terminal-window') document.getElementById('terminal-input').focus();
+        if (windowId === 'terminal-window') document.getElementById('terminal-input').focus();
     }
 
     function closeWindow(windowId) {
@@ -230,7 +230,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const taskbarIcon = document.querySelector(`.taskbar-app-icon[data-window="${windowEl.id}"]`);
         if (taskbarIcon) taskbarIcon.classList.add('active');
     }
-    
+
     function getWindowIconData(windowId) {
         const desktopIcon = document.querySelector(`.desktop-icon[data-window="${windowId}"]`);
         return {
@@ -266,7 +266,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.removeEventListener('mouseup', onMouseUp);
         }
     }
-    
+
     // --- 7. APP DE CONFIGURAÇÕES (NOVO) ---
     function initSettingsApp() {
         const themeSelector = document.getElementById('theme-selector');
@@ -325,17 +325,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!terminalBodyEl) return;
 
         const projects = {
-            "projeto-a": { title: "Sistema de E-commerce 'RocketShop'", description: "Plataforma de e-commerce completa...", tech: "[ React, Node.js, RabbitMQ, Redis ]", link: "httpsA://github.com/SEU_GITHUB/projeto-a" },
-            "projeto-b": { title: "App de Produtividade 'FocusFlow'", description: "Um PWA para gerenciamento de tarefas...", tech: "[ TypeScript, React, PWA, Firebase ]", link: "httpsA://github.com/SEU_GITHUB/projeto-b" },
-            "portfolio-os": { title: "Este Portfólio (Meta!)", description: "O próprio portfólio que você está usando.", tech: "[ Vanilla JavaScript, HTML5, CSS ]", link: "httpsA://github.com/SEU_GITHUB/meu-portfolio" }
+            "vetpilot": { title: "VetPilot", description: "Sistema de chat com IA, exames, aulas e simulados...", tech: "[ Next.js, Supabase, Postgres, AI ]", link: "https://github.com/LuiizFellipe/projeto-a" },
+            "wcheck": { title: "W Check Brasil", description: "Maior plataforma de consulta veicular e análise de crédito...", tech: "[ Next.js, Postgres, AWS ]", link: "https://github.com/LuiizFellipe/projeto-b" },
+            "portfolio-os": { title: "Este Portfólio (Meta!)", description: "O próprio portfólio que você está usando.", tech: "[ Vanilla JavaScript, HTML5, CSS ]", link: "https://github.com/LuiizFellipe/meu-portfolio" }
         };
         const files = {
             'about.txt': `Olá! Sou o Luiz Felipe Andrich. 
 Um desenvolvedor focado em lógica, performance e em entregar algo que os usuários *realmente* queiram usar.`,
             'contact.sh': `#!/bin/bash
 echo "LinkedIn: httpsA://www.linkedin.com/in/SEU_LINKEDIN"
-echo "GitHub:   httpsA://github.com/SEU_GITHUB"
-echo "Email:    mailto:SEU_EMAIL@gmail.com"`
+echo "GitHub:   https://github.com/LuiizFellipe"
+echo "Email:    mailto:andrich.luiz@gmail.com"`
         };
         const commands = {
             'help': "Comandos: <span class='highlight'>neofetch</span>, <span class='highlight'>skills</span>, <span class='highlight'>projects</span>, <span class='highlight'>ls</span>, <span class='highlight'>cat [arquivo]</span>, <span class='highlight'>contact</span>, <span class='highlight'>whoami</span>, <span class='highlight'>date</span>, <span class='highlight'>sudo</span>, <span class='highlight'>clear</span>",
@@ -352,12 +352,12 @@ echo "Email:    mailto:SEU_EMAIL@gmail.com"`
   ▹ Node.js, Python, PostgreSQL, Redis
 <span class="highlight">//--- CONCEITOS ---//</span>
   ▹ Arquitetura, Filas (RabbitMQ), Git, Docker`,
-            'projects': `Projetos: <span class="project-title">projeto-a</span>, <span class="project-title">projeto-b</span>, <span class="project-title">portfolio-os</span>.
+            'projects': `Projetos: <span class="project-title">vetpilot</span>, <span class="project-title">wcheck</span>, <span class="project-title">portfolio-os</span>.
 Digite <span class='highlight'>projects [nome]</span> para detalhes.`,
             'ls': `<span class="ls-dir">projects/</span>  <span class="ls-file">about.txt</span>  <span class="ls-exec">contact.sh</span>`,
             'contact': `LinkedIn: <a href="httpsA://www.linkedin.com/in/SEU_LINKEDIN" target="_blank">.../SEU_LINKEDIN</a>
-GitHub:   <a href="httpsA://github.com/SEU_GITHUB" target="_blank">.../SEU_GITHUB</a>
-Email:    <a href="mailto:SEU_EMAIL@gmail.com">SEU_EMAIL@gmail.com</a>`,
+GitHub:   <a href="https://github.com/LuiizFellipe" target="_blank">.../SEU_GITHUB</a>
+Email:    <a href="mailto:andrich.luiz@gmail.com">andrich.luiz@gmail.com</a>`,
             'whoami': 'luiz_felipe_andrich (O dev que você estava procurando)',
             'date': `Hoje é ${new Date().toLocaleDateString('pt-BR', { dateStyle: 'full' })}... Hora de me contratar.`,
             'clear': '',
@@ -376,7 +376,7 @@ Email:    <a href="mailto:SEU_EMAIL@gmail.com">SEU_EMAIL@gmail.com</a>`,
                 }
             }
         });
-        
+
         function processCommand(command) {
             if (command === 'clear') { terminalOutputEl.innerHTML = ''; return; }
             let response = '';
@@ -387,7 +387,7 @@ Email:    <a href="mailto:SEU_EMAIL@gmail.com">SEU_EMAIL@gmail.com</a>`,
   <span class="highlight">Descrição:</span> ${p.description}
   <span class="highlight">Stack:</span>     ${p.tech}
   <span class="highlight">Link:</span> <a href="${p.link}" target="_blank">${p.link}</a>`
-                : `<span class="error">Projeto '${pName}' não encontrado.</span>`;
+                    : `<span class="error">Projeto '${pName}' não encontrado.</span>`;
             } else if (command.startsWith('cat ')) {
                 const fName = command.split(' ')[1];
                 response = files[fName] ? files[fName] : `<span class="error">cat:</span> '${fName}': Arquivo não encontrado.`;
@@ -404,7 +404,7 @@ Email:    <a href="mailto:SEU_EMAIL@gmail.com">SEU_EMAIL@gmail.com</a>`,
                 lineEl.innerHTML = `<span class="prompt-prefix">luiz@portfolio:~$</span> ${text}`;
                 terminalOutputEl.appendChild(lineEl);
             } else {
-                lineEl.innerHTML = ''; 
+                lineEl.innerHTML = '';
                 terminalOutputEl.appendChild(lineEl);
                 let i = 0;
                 while (i < text.length) {
@@ -440,7 +440,7 @@ Email:    <a href="mailto:SEU_EMAIL@gmail.com">SEU_EMAIL@gmail.com</a>`,
     function handleBSODKeys(e) {
         if (bsodScreenEl.classList.contains('hidden')) return;
         if (e.key === 'Enter') location.reload();
-        else if (e.key.toLowerCase() === 'c') window.location.href = 'mailto:SEU_EMAIL@gmail.com';
+        else if (e.key.toLowerCase() === 'c') window.location.href = 'mailto:andrich.luiz@gmail.com';
     }
 
     // --- INICIALIZAÇÃO ---
