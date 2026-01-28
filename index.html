@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bootando... | Luiz Felipe Andrich</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Space+Grotesk:wght@700&family=Consolas&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div id="boot-container">
+        <div id="boot-log"></div>
+        <div class="boot-loader-line">
+            <span id="boot-loader"></span>
+            <span id="boot-status">[ INICIANDO ]</span>
+        </div>
+    </div>
+
+    <div id="desktop-environment" class="hidden">
+        
+        <div class="desktop-icon" data-window="about-window">
+            <img src="https://img.icons8.com/fluency/48/user-male-circle.png" alt="User Icon"/>
+            <span>Sobre Mim.txt</span>
+        </div>
+        
+        <div class="desktop-icon" data-window="projects-window">
+            <img src="https://img.icons8.com/fluency/48/project.png" alt="Project Icon"/>
+            <span>Projetos</span>
+        </div>
+
+        <div class="desktop-icon" data-window="terminal-window">
+            <img src="https://img.icons8.com/fluency/48/console.png" alt="Terminal Icon"/>
+            <span>Terminal</span>
+        </div>
+
+        <div class="desktop-icon" data-window="settings-window">
+            <img src="https://img.icons8.com/fluency/48/settings.png" alt="Settings Icon"/>
+            <span>Configurações</span>
+        </div>
+
+        <div id="about-window" class="window hidden" style="width: 400px; height: 350px;">
+            <div class="window-header">
+                <span class="window-title">Sobre Mim.txt</span>
+                <button class="window-close" data-window="about-window">×</button>
+            </div>
+            <div class="window-body text-file">
+                <h1>Olá, sou o Luiz Felipe Andrich.</h1>
+                <p>Um desenvolvedor apaixonado por resolver quebra-cabeças complexos. Minha filosofia é usar a ferramenta certa para o trabalho, seja `React` para uma interface, `Python` para um script, ou um `prompt` de IA para acelerar a entrega.</p>
+                <p>Eu não sou um "digitador de código"; sou um arquiteto de soluções focado em lógica, performance e em entregar algo que os usuários *realmente* queiram usar.</p>
+            </div>
+        </div>
+
+        <div id="projects-window" class="window hidden" style="width: 700px; height: 500px;">
+            <div class="window-header">
+                <span class="window-title">Explorer > Projetos</span>
+                <button class="window-close" data-window="projects-window">×</button>
+            </div>
+            <div class="window-body">
+                <div class="project-card-grid">
+                    <div class="project-card">
+                        <h3>Sistema de E-commerce 'RocketShop'</h3>
+                        <p>Plataforma de e-commerce completa construída com uma arquitetura de micro-serviços simulada.</p>
+                        <div class="card-tech-tags">
+                            <span class="tech-tag">React</span><span class="tech-tag">Node.js</span><span class="tech-tag">RabbitMQ</span><span class="tech-tag">Redis</span>
+                        </div>
+                        <div class="card-links">
+                            <a href="httpsA://github.com/SEU_GITHUB/projeto-a" target="_blank">Ver Código</a>
+                        </div>
+                    </div>
+                    <div class="project-card">
+                        <h3>App de Produtividade 'FocusFlow'</h3>
+                        <p>Um PWA (Progressive Web App) para gerenciamento de tarefas com foco na técnica Pomodoro e estatísticas.</p>
+                        <div class="card-tech-tags">
+                            <span class="tech-tag">TypeScript</span><span class="tech-tag">React</span><span class="tech-tag">PWA</span><span class="tech-tag">Firebase</span>
+                        </div>
+                        <div class="card-links">
+                            <a href="httpsA://github.com/SEU_GITHUB/projeto-b" target="_blank">Ver Código</a>
+                        </div>
+                    </div>
+                    <div class="project-card">
+                        <h3>Este Portfólio (LuizOS)</h3>
+                        <p>O próprio portfólio que você está usando, construído como um mini-sistema operacional interativo em JS puro.</p>
+                        <div class="card-tech-tags">
+                            <span class="tech-tag">JavaScript</span><span class="tech-tag">HTML5</span><span class="tech-tag">CSS</span><span class="tech-tag">UI/UX</span>
+                        </div>
+                        <div class="card-links">
+                            <a href="httpsA://github.com/SEU_GITHUB/meu-portfolio" target="_blank">Ver Código</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="terminal-window" class="window hidden" style="width: 650px; height: 450px;">
+            <div class="window-header">
+                <span class="window-title">luiz@portfolio: ~</span>
+                <button class="window-close" data-window="terminal-window">×</button>
+            </div>
+            <div id="terminal-body" class="window-body">
+                <div id="terminal-output"></div>
+                <div class="terminal-prompt">
+                    <span class="prompt-prefix">luiz@portfolio:~$</span>
+                    <input type="text" id="terminal-input" autocomplete="off" spellcheck="false" />
+                </div>
+            </div>
+        </div>
+        
+        <div id="settings-window" class="window hidden" style="width: 500px; height: 550px;">
+            <div class="window-header">
+                <span class="window-title">Configurações</span>
+                <button class="window-close" data-window="settings-window">×</button>
+            </div>
+            <div class="window-body settings-body">
+                <h3>Personalização</h3>
+                
+                <div class="setting-group">
+                    <h4>Tema</h4>
+                    <div class="radio-group" id="theme-selector">
+                        <label><input type="radio" name="theme" value="dark" checked> Escuro</label>
+                        <label><input type="radio" name="theme" value="light"> Claro</label>
+                        <label><input type="radio" name="theme" value="matrix"> Matrix</label>
+                    </div>
+                </div>
+
+                <div class="setting-group">
+                    <h4>Cor de Destaque</h4>
+                    <div class="swatch-group" id="accent-selector">
+                        <div class="color-swatch" data-accent="green" style="background: #39D353;" title="Verde Padrão"></div>
+                        <div class="color-swatch" data-accent="blue" style="background: #58A6FF;" title="Azul"></div>
+                        <div class="color-swatch" data-accent="pink" style="background: #E83D84;" title="Rosa"></div>
+                        <div class="color-swatch" data-accent="orange" style="background: #FFA657;" title="Laranja"></div>
+                    </div>
+                </div>
+
+                <div class="setting-group">
+                    <h4>Papel de Parede</h4>
+                    <div class="wallpaper-group" id="wallpaper-selector">
+                        <img src="https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=200&q=80" data-url="https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1770&q=80" class="wallpaper-thumb" alt="Montanha">
+                        <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=200&q=80" data-url="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1773&q=80" class="wallpaper-thumb" alt="Praia">
+                        <img src="https://images.unsplash.com/photo-1550684376-efcbd6e3f031?auto=format&fit=crop&w=200&q=80" data-url="httpsaS://images.unsplash.com/photo-1550684376-efcbd6e3f031?auto=format&fit=crop&w=1770&q=80" class="wallpaper-thumb" alt="Abstrato Escuro">
+                        <img src="https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=200&q=80" data-url="httpsaS://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=1770&q=80" class="wallpaper-thumb" alt="Código">
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+
+        <div id="start-menu" class="hidden">
+            <div class="start-menu-sidebar">
+                <img src="https://img.icons8.com/fluency/96/user-male-circle.png" alt="Luiz Felipe" class="start-menu-avatar"/>
+                <span>Luiz Felipe</span>
+            </div>
+            <div class="start-menu-list">
+                <div class="start-menu-item" data-window="about-window">
+                    <img src="https://img.icons8.com/fluency/48/user-male-circle.png" alt="Sobre"/>
+                    <span>Sobre Mim</span>
+                </div>
+                <div class="start-menu-item" data-window="projects-window">
+                    <img src="https://img.icons8.com/fluency/48/project.png" alt="Projetos"/>
+                    <span>Projetos</span>
+                </div>
+                <div class="start-menu-item" data-window="terminal-window">
+                    <img src="https://img.icons8.com/fluency/48/console.png" alt="Terminal"/>
+                    <span>Terminal</span>
+                </div>
+                <div class="start-menu-divider"></div>
+                <div class="start-menu-item" data-window="settings-window">
+                    <img src="https://img.icons8.com/fluency/48/settings.png" alt="Configurações"/>
+                    <span>Configurações</span>
+                </div>
+                <div class="start-menu-item" id="restart-button">
+                    <img src="https://img.icons8.com/fluency/48/restart.png" alt="Reiniciar"/>
+                    <span>Reiniciar</span>
+                </div>
+                <div class="start-menu-item" id="shutdown-button">
+                    <img src="https://img.icons8.com/fluency/48/shutdown.png" alt="Desligar"/>
+                    <span>Desligar</span>
+                </div>
+            </div>
+        </div>
+
+
+        <footer id="taskbar">
+            <div class="start-menu-button" id="start-button">
+                <img src="https://img.icons8.com/fluency/48/rocket.png" alt="Start" width="24"/>
+                <span>Iniciar</span>
+            </div>
+            <div class="taskbar-divider"></div>
+            <div id="taskbar-icons">
+                </div>
+            <div class="taskbar-clock" id="clock">11:57 PM</div>
+        </footer>
+
+    </div>
+    
+    <div id="classic-wrapper" class="hidden">
+        <header class="classic-hero">
+            <h1>Luiz Felipe Andrich</h1>
+            <h2 class="subtitle">Arquiteto de Soluções & Dev Fullstack</h2>
+            <div class="links">
+                <a href="httpsA://www.linkedin.com/in/SEU_LINKEDIN" target="_blank" class="cta-button">LinkedIn</a>
+                <a href="https://github.com/SEU_GITHUB" target="_blank" class="cta-button secondary">GitHub</a>
+            </div>
+        </header>
+        <main>
+            <section id="classic-about" class="classic-section">
+                <h2>// Sobre Mim</h2>
+                <p>Olá! Sou o Luiz. Um dev focado em resultados, apaixonado por construir produtos escaláveis e com ótima UX.</p>
+            </section>
+        </main>
+    </div>
+
+
+    <div id="bsod-screen" class="hidden">
+        <div class="bsod-content">
+            <h1>:(</h1>
+            <p>Seu recrutador parou de responder.</p>
+            <p>Isso pode ter ocorrido por vários motivos. Mas, para garantir que você não perca a chance de contratar um desenvolvedor que pensa em cada detalhe (até mesmo na tela de erro), parei tudo por aqui.</p>
+            <br>
+            <p>Pressione <span class="key">C</span> para me <span class="key-action">Contatar</span> imediatamente.</p>
+            <p>Pressione <span class="key">Enter</span> para <span class="key-action">Reiniciar</span> o portfólio.</p>
+            <br>
+            <p class="error-code">Código do Erro: NEED_A_DEV_LIKE_LUIZ</p>
+        </div>
+    </div>
+
+    <div id="shutdown-screen" class="hidden">
+        <h1>Desligando...</h1>
+        <p>Obrigado pela visita!</p>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

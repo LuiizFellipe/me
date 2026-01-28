@@ -1,0 +1,451 @@
+/* FONTES:
+   'Space Grotesk' (Títulos), 'Space Mono' (Texto/Terminal), 'Consolas' (BSOD)
+*/
+
+/* 1. VARIÁVEIS DE TEMA E CORES */
+:root {
+    /* Tema Escuro (Padrão) */
+    --bg-color: #0D1117;
+    --text-color: #C9D1D9;
+    --text-secondary: #8B949E;
+    --border-color: #30363D;
+    --window-bg: #161B22;
+    --terminal-bg: #010409;
+    --desktop-font-color: #FFFFFF;
+    --taskbar-bg: rgba(13, 17, 23, 0.8);
+
+    /* Cor de Destaque (Padrão Verde) */
+    --highlight: #39D353;
+    --highlight-bar-color: #2EA043;
+    
+    /* Cores Fixas */
+    --error-color: #F85149;
+    --link-color: #58A6FF;
+    --warn-color: #FFBD2E;
+    --bsod-blue: #0078D4;
+}
+
+[data-theme="light"] {
+    --bg-color: #FFFFFF;
+    --text-color: #1F2328;
+    --text-secondary: #57606A;
+    --border-color: #D0D7DE;
+    --window-bg: #F6F8FA;
+    --terminal-bg: #FFFFFF;
+    --desktop-font-color: #000000;
+    --taskbar-bg: rgba(255, 255, 255, 0.8);
+}
+
+[data-theme="matrix"] {
+    --bg-color: #000000;
+    --text-color: #00FF00;
+    --text-secondary: #00AA00;
+    --border-color: #003300;
+    --window-bg: #050505;
+    --terminal-bg: #000000;
+    --desktop-font-color: #00FF00;
+    --taskbar-bg: rgba(0, 10, 0, 0.8);
+    --link-color: #00FF00;
+}
+/* Fontes especiais para o tema Matrix */
+[data-theme="matrix"] body,
+[data-theme="matrix"] .window,
+[data-theme="matrix"] .desktop-icon span {
+    font-family: 'Consolas', 'Space Mono', monospace;
+    text-shadow: 0 0 5px var(--highlight);
+}
+
+/* Cores de Destaque */
+[data-accent="green"] { --highlight: #39D353; --highlight-bar-color: #2EA043; }
+[data-accent="blue"] { --highlight: #58A6FF; --highlight-bar-color: #2F81F7; }
+[data-accent="pink"] { --highlight: #E83D84; --highlight-bar-color: #D12771; }
+[data-accent="orange"] { --highlight: #FFA657; --highlight-bar-color: #F0883E; }
+
+
+/* 2. ESTILOS GERAIS E BOOT */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: 'Space Mono', monospace;
+    line-height: 1.6;
+    overflow: hidden; /* CRÍTICO: Impede o scroll no desktop */
+    transition: background-color 0.3s, color 0.3s;
+}
+.hidden { display: none !important; opacity: 0 !important; }
+
+#boot-container {
+    display: flex; flex-direction: column; justify-content: center;
+    min-height: 100vh; padding: 2rem;
+    font-family: 'Space Mono', monospace; color: var(--text-secondary);
+}
+#boot-log { white-space: pre-wrap; max-height: 70vh; overflow-y: auto; }
+#boot-log .success { color: var(--highlight); }
+#boot-log .warn { color: var(--warn-color); }
+.boot-loader-line { display: flex; align-items: center; margin-top: 1rem; }
+#boot-loader {
+    width: 0%; height: 10px; background-color: var(--highlight);
+    margin-right: 10px; box-shadow: 0 0 10px var(--highlight-bar-color);
+    transition: width 0.1s linear, background-color 0.3s, box-shadow 0.3s;
+}
+#boot-status { color: var(--highlight); font-weight: 700; transition: color 0.3s; }
+
+/* 3. DESKTOP ENVIRONMENT */
+#desktop-environment {
+    width: 100vw; height: 100vh;
+    /* Papel de parede padrão - será controlado por JS */
+    background-image: url('https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1770&q=80');
+    background-size: cover; background-position: center;
+    overflow: hidden; position: relative;
+    opacity: 0; transition: opacity 1s ease-in-out, background-image 0.5s ease;
+}
+#desktop-environment.visible { opacity: 1; }
+
+.desktop-icon {
+    display: flex; flex-direction: column; align-items: center;
+    width: 80px; padding: 10px; margin: 20px;
+    cursor: pointer; border-radius: 8px;
+    transition: background-color 0.2s ease;
+}
+.desktop-icon:hover { background-color: rgba(255, 255, 255, 0.1); }
+.desktop-icon img { width: 48px; height: 48px; }
+.desktop-icon span {
+    color: var(--desktop-font-color);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.9rem;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+    text-align: center; margin-top: 5px;
+}
+
+/* 4. BARRA DE TAREFAS */
+#taskbar {
+    position: fixed; bottom: 0; left: 0;
+    width: 100%; height: 40px;
+    background-color: var(--taskbar-bg);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid var(--border-color);
+    display: flex; align-items: center;
+    padding: 0 10px;
+    z-index: 10000; /* Sempre no topo */
+    transition: background-color 0.3s, border-top 0.3s;
+}
+.start-menu-button {
+    display: flex; align-items: center;
+    padding: 5px 10px; border-radius: 4px;
+    cursor: pointer; transition: background-color 0.2s;
+}
+.start-menu-button:hover, .start-menu-button.active { background-color: var(--border-color); }
+.start-menu-button img { width: 24px; margin-right: 5px; }
+.start-menu-button span { color: var(--text-color); font-family: 'Space Grotesk', sans-serif; }
+.taskbar-divider { width: 1px; height: 25px; background-color: var(--border-color); margin: 0 10px; }
+#taskbar-icons { display: flex; height: 100%; }
+.taskbar-app-icon {
+    display: flex; align-items: center;
+    padding: 0 10px; margin: 0 2px;
+    height: 100%; cursor: pointer;
+    background-color: transparent;
+    border-bottom: 2px solid transparent;
+    transition: background-color 0.2s;
+}
+.taskbar-app-icon:hover { background-color: var(--border-color); }
+.taskbar-app-icon.active {
+    background-color: rgba(255,255,255,0.15);
+    border-bottom: 2px solid var(--highlight);
+    transition: border-bottom 0.3s;
+}
+.taskbar-app-icon img { width: 20px; margin-right: 5px; }
+.taskbar-app-icon span { color: var(--text-color); font-size: 0.9rem; }
+.taskbar-clock {
+    margin-left: auto; color: var(--text-color);
+    padding: 0 10px; font-size: 0.9rem;
+}
+
+/* 5. MENU INICIAR (NOVO) */
+#start-menu {
+    position: fixed;
+    bottom: 40px; /* Acima da barra de tarefas */
+    left: 0;
+    width: 300px;
+    height: 400px;
+    background-color: var(--taskbar-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border-color);
+    border-radius: 0 8px 0 0;
+    z-index: 9999; /* Abaixo da barra de tarefas, acima das janelas */
+    display: flex;
+    overflow: hidden;
+    /* Animação de slide-up */
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+}
+#start-menu:not(.hidden) {
+    transform: translateY(0);
+}
+.start-menu-sidebar {
+    width: 60px;
+    background-color: rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem 0;
+}
+.start-menu-avatar {
+    width: 48px;
+    border-radius: 50%;
+    margin-bottom: 5px;
+}
+.start-menu-sidebar span {
+    color: var(--text-color);
+    font-size: 0.8rem;
+    font-family: 'Space Grotesk', sans-serif;
+}
+.start-menu-list {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+.start-menu-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+.start-menu-item:hover {
+    background-color: var(--border-color);
+}
+.start-menu-item img {
+    width: 24px;
+    margin-right: 15px;
+}
+.start-menu-item span {
+    color: var(--text-color);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1rem;
+}
+.start-menu-divider {
+    height: 1px;
+    background-color: var(--border-color);
+    margin: 5px 10px;
+}
+#restart-button, #shutdown-button {
+    margin-top: auto; /* Coloca no final */
+}
+
+
+/* 6. JANELAS (Atualizado) */
+.window {
+    position: absolute;
+    top: 50px; left: 50px;
+    background-color: var(--window-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    resize: both;
+    overflow: auto;
+    min-width: 300px; min-height: 200px;
+    display: flex; flex-direction: column;
+    transition: background-color 0.3s, border-color 0.3s;
+}
+.window-header {
+    background-color: var(--bg-color);
+    padding: 8px 12px;
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid var(--border-color);
+    cursor: move; user-select: none;
+    transition: background-color 0.3s, border-color 0.3s;
+}
+.window-title { font-family: 'Space Grotesk', sans-serif; font-weight: 700; color: var(--text-secondary); }
+.window-close {
+    background-color: var(--error-color);
+    border: none; color: white;
+    width: 20px; height: 20px;
+    border-radius: 50%; font-weight: bold;
+    cursor: pointer; line-height: 18px;
+}
+.window-body {
+    padding: 1.5rem;
+    flex-grow: 1;
+    overflow-y: auto;
+    background-color: var(--terminal-bg);
+    transition: background-color 0.3s;
+}
+.window-body.text-file {
+    background-color: var(--window-bg);
+    font-size: 1.1rem;
+}
+.window-body.text-file h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    color: var(--highlight);
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    transition: color 0.3s;
+}
+
+/* 7. CONTEÚDO (PROJETOS, TERMINAL, CONFIGURAÇÕES) */
+/* Cards de Projeto */
+.project-card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.5rem; }
+.project-card {
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px; padding: 1.5rem;
+    transition: transform 0.3s ease, background-color 0.3s, border-color 0.3s;
+}
+.project-card:hover { transform: translateY(-5px); }
+.project-card h3 { color: var(--link-color); margin-bottom: 1rem; font-size: 1.2rem; transition: color 0.3s; }
+.card-tech-tags { margin: 1rem 0; }
+.tech-tag {
+    background-color: var(--border-color);
+    padding: 3px 10px; border-radius: 6px;
+    font-size: 0.9rem; white-space: nowrap;
+    display: inline-block; margin: 2px;
+    transition: background-color 0.3s;
+}
+.card-links a { color: var(--highlight); text-decoration: none; font-weight: 700; transition: color 0.3s; }
+
+/* Terminal */
+#terminal-body {
+    padding: 0; display: flex; flex-direction: column; height: 100%;
+}
+#terminal-output {
+    padding: 1.5rem; white-space: pre-wrap;
+    flex-grow: 1; overflow-y: auto;
+}
+.terminal-prompt { display: flex; align-items: center; padding: 0.5rem 1.5rem; border-top: 1px solid var(--border-color); }
+.prompt-prefix { color: var(--highlight); font-weight: 700; margin-right: 8px; transition: color 0.3s; }
+#terminal-input {
+    background: none; border: none; outline: none;
+    color: var(--text-color); font-family: 'Space Mono', monospace;
+    font-size: 1rem; flex-grow: 1; caret-color: var(--highlight);
+}
+/* Estilos de output do terminal (cores atualizadas por variáveis) */
+.terminal-output-line.command { color: var(--text-secondary); }
+.terminal-output-line.response .highlight { font-weight: 700; color: var(--highlight); }
+.terminal-output-line.response .error { color: var(--error-color); font-weight: 700; }
+.terminal-output-line.response .warn { color: var(--warn-color); font-weight: 700; }
+.terminal-output-line.response .project-title { color: var(--link-color); font-weight: 700; }
+.terminal-output-line.response a { color: var(--link-color); text-decoration: underline; }
+.terminal-output-line.neofetch-ascii { color: var(--highlight); font-weight: 700; font-size: 0.9rem; }
+.terminal-output-line.neofetch-info .info-label { color: var(--highlight); font-weight: 700; width: 120px; }
+.terminal-output-line.response .ls-dir { color: var(--link-color); font-weight: 700; }
+.terminal-output-line.response .ls-exec { color: var(--highlight); font-weight: 700; }
+
+/* Janela de Configurações (NOVO) */
+.settings-body {
+    background-color: var(--window-bg);
+}
+.settings-body h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    color: var(--highlight);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+    margin-bottom: 1rem;
+}
+.setting-group {
+    margin-bottom: 2rem;
+}
+.setting-group h4 {
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+.radio-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 1.1rem;
+    cursor: pointer;
+}
+.swatch-group {
+    display: flex;
+    gap: 10px;
+}
+.color-swatch {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid var(--border-color);
+    transition: transform 0.2s, border-color 0.2s;
+}
+.color-swatch:hover {
+    transform: scale(1.1);
+}
+.color-swatch.active {
+    border-color: var(--highlight);
+    box-shadow: 0 0 10px var(--highlight);
+}
+.wallpaper-group {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+.wallpaper-thumb {
+    width: 100%;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 4px;
+    cursor: pointer;
+    border: 2px solid var(--border-color);
+    transition: border-color 0.2s, transform 0.2s;
+}
+.wallpaper-thumb:hover {
+    transform: scale(1.05);
+}
+.wallpaper-thumb.active {
+    border-color: var(--highlight);
+    box-shadow: 0 0 10px var(--highlight);
+}
+
+/* 8. MODO CLÁSSICO (PARA MOBILE) */
+#classic-wrapper {
+    max-width: 900px; margin: 0 auto; padding: 1rem;
+    opacity: 0; transition: opacity 1s ease-in-out;
+}
+#classic-wrapper.visible { opacity: 1; }
+.classic-hero { text-align: center; padding: 4rem 1rem; border-bottom: 1px solid var(--border-color); }
+.classic-hero h1 { color: var(--highlight); }
+.classic-hero .links { margin-top: 2rem; }
+.classic-section { padding: 3rem 1rem; }
+.classic-section h2 { margin-bottom: 2rem; border-bottom: 2px solid var(--highlight-bar-color); padding-bottom: 0.5rem; }
+/* Botões */
+.cta-button {
+    font-family: 'Space Grotesk', sans-serif;
+    background-color: var(--highlight-bar-color); color: var(--bg-color);
+    text-decoration: none; padding: 12px 24px; border-radius: 6px;
+    font-weight: 700; display: inline-block; border: 1px solid transparent; cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+}
+.cta-button.secondary {
+    background-color: transparent; border-color: var(--highlight-bar-color);
+    color: var(--highlight); margin-left: 1rem;
+    transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+}
+
+/* 9. TELAS DE EFEITO (BSOD, SHUTDOWN) */
+#bsod-screen {
+    position: fixed; top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background-color: var(--bsod-blue);
+    color: #FFF; font-family: 'Consolas', 'Space Mono', monospace;
+    padding: 5%; z-index: 99998;
+    opacity: 0; transition: opacity 0.2s ease-in;
+}
+#bsod-screen.visible { opacity: 1; }
+.bsod-content h1 { font-family: 'Consolas', 'Space Mono', monospace; font-size: 8rem; font-weight: 400; }
+.bsod-content p { font-size: 1.5rem; margin-top: 1.5rem; max-width: 80ch; }
+.bsod-content .key { background-color: #FFF; color: var(--bsod-blue); padding: 2px 8px; border-radius: 4px; font-weight: 700; }
+.bsod-content .key-action { text-decoration: underline; }
+.bsod-content .error-code { margin-top: 3rem; font-size: 1rem; }
+
+#shutdown-screen {
+    position: fixed; top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background-color: #000000;
+    color: #FFF; font-family: 'Consolas', 'Space Mono', monospace;
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+    z-index: 100000;
+    opacity: 0; transition: opacity 0.5s ease-in;
+}
+#shutdown-screen.visible { opacity: 1; }
+#shutdown-screen h1 { font-size: 3rem; }
