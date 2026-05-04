@@ -347,11 +347,11 @@ echo "Email:    mailto:andrich.luiz@gmail.com"`
 <div class="neofetch-info"><span class="info-label">OS</span><span class="info-value">LuizOS v1.0</span></div>
 <div class="neofetch-info"><span class="info-label">Foco</span><span class="info-value">Fullstack, Arquitetura</span></div>`,
             'skills': `<span class="highlight">//--- FRONTEND ---//</span>
-  ▹ JavaScript, TypeScript, React, Next.js
+  ▹ TypeScript, Next.js, Nuxt.js
 <span class="highlight">//--- BACKEND ---//</span>
-  ▹ Node.js, Python, PostgreSQL, Redis
-<span class="highlight">//--- CONCEITOS ---//</span>
-  ▹ Arquitetura, Filas (RabbitMQ), Git, Docker`,
+  ▹ NestJS, Fastify, Supabase, N8n, RabbitMQ, Redis
+<span class="highlight">//--- DEVOPS & INFRA ---//</span>
+  ▹ Docker, VPS, DevOps`,
             'projects': `Projetos: <span class="project-title">vetpilot</span>, <span class="project-title">wcheck</span>, <span class="project-title">portfolio-os</span>.
 Digite <span class='highlight'>projects [nome]</span> para detalhes.`,
             'ls': `<span class="ls-dir">projects/</span>  <span class="ls-file">about.txt</span>  <span class="ls-exec">contact.sh</span>`,
