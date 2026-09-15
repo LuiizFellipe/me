@@ -2,7 +2,7 @@
 
 Um portfólio interativo inspirado em sistemas operacionais, simulando um ambiente desktop completo rodando diretamente no navegador.
 
-https://andrich.netlify.app 
+https://luizfelipe.dev.br/
 
 
 ## 🚀 Sobre o Projeto
