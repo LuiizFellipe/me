@@ -3,24 +3,52 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Bootando... | Luiz Felipe Andrich</title>
-    <link rel="stylesheet" href="style.css">
+    <meta name="description"
+        content="LuizOS — o portfólio interativo de Luiz Felipe Andrich. Um desktop de sistema operacional direto no navegador, com terminal funcional, temas e easter eggs.">
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://img.icons8.com https://images.unsplash.com; object-src 'none'; base-uri 'none'; form-action 'none'">
+    <link rel="icon"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%96%A5%EF%B8%8F%3C/text%3E%3C/svg%3E">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://luizfelipe.dev.br/">
+    <meta property="og:title" content="LuizOS | Luiz Felipe Andrich">
+    <meta property="og:description"
+        content="Um portfólio que é um sistema operacional no navegador. Abra o terminal, explore os projetos e tente o 'sudo'.">
+    <meta property="og:image" content="https://luizfelipe.dev.br/assets/og-image.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Desktop do LuizOS com a janela de projetos aberta">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="LuizOS | Luiz Felipe Andrich">
+    <meta name="twitter:description"
+        content="Um portfólio que é um sistema operacional no navegador. Abra o terminal, explore os projetos e tente o 'sudo'.">
+    <meta name="twitter:image" content="https://luizfelipe.dev.br/assets/og-image.jpg">
+    <link rel="stylesheet" href="style.css?v=2026.10">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Space+Grotesk:wght@700&family=Consolas&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Space+Grotesk:wght@700&display=swap"
         rel="stylesheet">
 </head>
 
 <body>
 
     <div id="boot-container">
+        <pre id="boot-logo" aria-hidden="true">
+██╗     ██╗██╗   ██╗███████╗ ██████╗ ███████╗
+██║     ██║██║   ██║██╔════╝██╔═══██╗██╔════╝
+██║     ██║██║   ██║█████╗  ██║   ██║███████╗
+██║     ██║╚██╗ ██╔╝██╔══╝  ██║   ██║╚════██║
+███████╗██║ ╚████╔╝ ██║     ╚██████╔╝███████║
+╚══════╝╚═╝  ╚═══╝  ╚═╝      ╚═════╝ ╚══════╝</pre>
         <div id="boot-log"></div>
         <div class="boot-loader-line">
             <span id="boot-loader"></span>
             <span id="boot-status">[ INICIANDO ]</span>
         </div>
+        <button id="boot-skip" type="button">Pressione ENTER ou clique aqui para pular ▸</button>
     </div>
 
     <div id="desktop-environment" class="hidden">
@@ -40,6 +68,11 @@
             <span>Terminal</span>
         </div>
 
+        <div class="desktop-icon" data-window="snake-window">
+            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect x='4' y='12' width='40' height='24' rx='12' fill='%234FC3F7'/%3E%3Crect x='12' y='22' width='10' height='4' rx='2' fill='%23fff'/%3E%3Crect x='15' y='19' width='4' height='10' rx='2' fill='%23fff'/%3E%3Ccircle cx='33' cy='21' r='2.6' fill='%23FFD54F'/%3E%3Ccircle cx='38' cy='26' r='2.6' fill='%23FF7043'/%3E%3C/svg%3E" alt="Snake Icon" />
+            <span>Snake.exe</span>
+        </div>
+
         <div class="desktop-icon" data-window="settings-window">
             <img src="https://img.icons8.com/fluency/48/settings.png" alt="Settings Icon" />
             <span>Configurações</span>
@@ -48,7 +81,11 @@
         <div id="about-window" class="window hidden" style="width: 400px; height: 350px;">
             <div class="window-header">
                 <span class="window-title">Sobre Mim.txt</span>
-                <button class="window-close" data-window="about-window">×</button>
+                <div class="window-controls">
+                    <button class="window-btn minimize" data-action="minimize" data-window="about-window" aria-label="Minimizar">–</button>
+                    <button class="window-btn maximize" data-action="maximize" data-window="about-window" aria-label="Maximizar">□</button>
+                    <button class="window-close" data-window="about-window" aria-label="Fechar">×</button>
+                </div>
             </div>
             <div class="window-body text-file">
                 <h1>Olá, sou o Luiz Felipe Andrich.</h1>
@@ -86,7 +123,11 @@
         <div id="projects-window" class="window hidden" style="width: 700px; height: 500px;">
             <div class="window-header">
                 <span class="window-title">Explorer > Projetos</span>
-                <button class="window-close" data-window="projects-window">×</button>
+                <div class="window-controls">
+                    <button class="window-btn minimize" data-action="minimize" data-window="projects-window" aria-label="Minimizar">–</button>
+                    <button class="window-btn maximize" data-action="maximize" data-window="projects-window" aria-label="Maximizar">□</button>
+                    <button class="window-close" data-window="projects-window" aria-label="Fechar">×</button>
+                </div>
             </div>
             <div class="window-body">
                 <div class="project-card-grid">
@@ -98,7 +139,7 @@
                                 class="tech-tag">Postgres</span><span class="tech-tag">AI</span>
                         </div>
                         <div class="card-links">
-                            <a href="https://vetpilot.veteduka.com.br/" target="_blank">Ver Projeto</a>
+                            <a href="https://vetpilot.veteduka.com.br/" target="_blank" rel="noopener noreferrer">Ver Projeto</a>
                         </div>
                     </div>
                     <div class="project-card">
@@ -109,7 +150,7 @@
                                 class="tech-tag">AWS</span><span class="tech-tag">NestJS</span>
                         </div>
                         <div class="card-links">
-                            <a href="https://app.wcheckbrasil.com.br" target="_blank">Ver Projeto</a>
+                            <a href="https://app.wcheckbrasil.com.br" target="_blank" rel="noopener noreferrer">Ver Projeto</a>
                         </div>
                     </div>
                     <div class="project-card">
@@ -125,11 +166,11 @@
                         <h3>Pupify</h3>
                         <p>Plataforma completa para gestão de clínicas veterinárias com IA que escuta e cria prontuários em tempo real durante as consultas.</p>
                         <div class="card-tech-tags">
-                            <span class="tech-tag">Next.js</span><span class="tech-tag">TypeScript</span><span class="tech-tag"></span>Postgres</span><span
+                            <span class="tech-tag">Next.js</span><span class="tech-tag">TypeScript</span><span class="tech-tag">Postgres</span><span
                                 class="tech-tag">Fastify</span><span class="tech-tag">AI</span>
                         </div>
                         <div class="card-links">
-                            <a href="https://app.pupify.com.br/" target="_blank">Ver Projeto</a>
+                            <a href="https://app.pupify.com.br/" target="_blank" rel="noopener noreferrer">Ver Projeto</a>
                         </div>
                     </div>
                     <div class="project-card">
@@ -140,7 +181,7 @@
                                 class="tech-tag">PostgreSQL</span><span class="tech-tag">Next.js</span>
                         </div>
                         <div class="card-links">
-                            <a href="https://app.checkdomus.com.br" target="_blank">Ver Projeto</a>
+                            <a href="https://app.checkdomus.com.br" target="_blank" rel="noopener noreferrer">Ver Projeto</a>
                         </div>
                     </div>
                 </div>
@@ -150,13 +191,17 @@
         <div id="terminal-window" class="window hidden" style="width: 650px; height: 450px;">
             <div class="window-header">
                 <span class="window-title">luiz@portfolio: ~</span>
-                <button class="window-close" data-window="terminal-window">×</button>
+                <div class="window-controls">
+                    <button class="window-btn minimize" data-action="minimize" data-window="terminal-window" aria-label="Minimizar">–</button>
+                    <button class="window-btn maximize" data-action="maximize" data-window="terminal-window" aria-label="Maximizar">□</button>
+                    <button class="window-close" data-window="terminal-window" aria-label="Fechar">×</button>
+                </div>
             </div>
             <div id="terminal-body" class="window-body">
                 <div id="terminal-output"></div>
                 <div class="terminal-prompt">
                     <span class="prompt-prefix">luiz@portfolio:~$</span>
-                    <input type="text" id="terminal-input" autocomplete="off" spellcheck="false" />
+                    <input type="text" id="terminal-input" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" />
                 </div>
             </div>
         </div>
@@ -164,7 +209,11 @@
         <div id="settings-window" class="window hidden" style="width: 500px; height: 550px;">
             <div class="window-header">
                 <span class="window-title">Configurações</span>
-                <button class="window-close" data-window="settings-window">×</button>
+                <div class="window-controls">
+                    <button class="window-btn minimize" data-action="minimize" data-window="settings-window" aria-label="Minimizar">–</button>
+                    <button class="window-btn maximize" data-action="maximize" data-window="settings-window" aria-label="Maximizar">□</button>
+                    <button class="window-close" data-window="settings-window" aria-label="Fechar">×</button>
+                </div>
             </div>
             <div class="window-body settings-body">
                 <h3>Personalização</h3>
@@ -200,14 +249,49 @@
                             data-url="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1773&q=80"
                             class="wallpaper-thumb" alt="Praia">
                         <img src="https://images.unsplash.com/photo-1550684376-efcbd6e3f031?auto=format&fit=crop&w=200&q=80"
-                            data-url="httpsaS://images.unsplash.com/photo-1550684376-efcbd6e3f031?auto=format&fit=crop&w=1770&q=80"
+                            data-url="https://images.unsplash.com/photo-1550684376-efcbd6e3f031?auto=format&fit=crop&w=1770&q=80"
                             class="wallpaper-thumb" alt="Abstrato Escuro">
                         <img src="https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=200&q=80"
-                            data-url="httpsaS://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=1770&q=80"
+                            data-url="https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=1770&q=80"
                             class="wallpaper-thumb" alt="Código">
                     </div>
                 </div>
 
+                <div class="setting-group">
+                    <h4>Efeitos</h4>
+                    <label class="toggle-label"><input type="checkbox" id="crt-toggle"> Efeito CRT (scanlines)</label>
+                </div>
+
+            </div>
+        </div>
+
+        <div id="snake-window" class="window hidden" style="width: 480px; height: 560px;">
+            <div class="window-header">
+                <span class="window-title">Snake.exe</span>
+                <div class="window-controls">
+                    <button class="window-btn minimize" data-action="minimize" data-window="snake-window" aria-label="Minimizar">–</button>
+                    <button class="window-btn maximize" data-action="maximize" data-window="snake-window" aria-label="Maximizar">□</button>
+                    <button class="window-close" data-window="snake-window" aria-label="Fechar">×</button>
+                </div>
+            </div>
+            <div class="window-body snake-body">
+                <div class="snake-hud">
+                    <span id="snake-score">Score: 0</span>
+                    <span id="snake-high">Recorde: 0</span>
+                </div>
+                <canvas id="snake-canvas" width="440" height="420"></canvas>
+                <div class="snake-dpad" aria-hidden="true">
+                    <button type="button" data-dir="up">▲</button>
+                    <div class="dpad-row">
+                        <button type="button" data-dir="left">◀</button>
+                        <button type="button" data-dir="down">▼</button>
+                        <button type="button" data-dir="right">▶</button>
+                    </div>
+                </div>
+                <p class="snake-help">
+                    <span class="help-fine">Setas ou WASD para jogar · Espaço pausa/retoma</span>
+                    <span class="help-coarse">Toque no jogo para pausar · use o direcional</span>
+                </p>
             </div>
         </div>
 
@@ -256,28 +340,32 @@
             <div class="taskbar-divider"></div>
             <div id="taskbar-icons">
             </div>
+            <button id="sound-toggle" type="button" title="Ligar/desligar som" aria-label="Ligar/desligar som">🔊</button>
             <div class="taskbar-clock" id="clock">11:57 PM</div>
         </footer>
 
     </div>
 
-    <div id="classic-wrapper" class="hidden">
-        <header class="classic-hero">
-            <h1>Luiz Felipe Andrich</h1>
-            <h2 class="subtitle">Arquiteto de Soluções & Dev Fullstack</h2>
-            <div class="links">
-                <a href="httpsA://www.linkedin.com/in/SEU_LINKEDIN" target="_blank" class="cta-button">LinkedIn</a>
-                <a href="https://github.com/SEU_GITHUB" target="_blank" class="cta-button secondary">GitHub</a>
-            </div>
-        </header>
-        <main>
-            <section id="classic-about" class="classic-section">
-                <h2>// Sobre Mim</h2>
-                <p>Olá! Sou o Luiz. Um dev focado em resultados, apaixonado por construir produtos escaláveis e com
-                    ótima UX.</p>
-            </section>
-        </main>
+    <div id="context-menu" class="hidden">
+        <div class="context-item" data-action="next-wallpaper">Próximo papel de parede</div>
+        <div class="context-item" data-action="toggle-theme">Alternar tema</div>
+        <div class="context-item" data-action="open-terminal">Abrir terminal</div>
+        <div class="context-divider"></div>
+        <div class="context-item" data-action="reload">Atualizar</div>
+        <div class="context-item" data-action="about-os">Sobre o LuizOS</div>
     </div>
+
+    <div id="toast-notification" class="hidden" role="status">
+        <img src="https://img.icons8.com/fluency/48/mail.png" alt="" />
+        <div class="toast-text">
+            <strong>Mensagens (1)</strong>
+            <span>1 recrutador quer falar com você. Responder agora?</span>
+        </div>
+        <button type="button" class="toast-close" aria-label="Fechar notificação">×</button>
+    </div>
+
+    <canvas id="matrix-canvas" class="hidden" aria-hidden="true"></canvas>
+    <div id="crt-overlay" aria-hidden="true"></div>
 
 
     <div id="bsod-screen" class="hidden">
@@ -299,7 +387,7 @@
         <p>Obrigado pela visita!</p>
     </div>
 
-    <script src="script.js"></script>
+    <script src="script.js?v=2026.10"></script>
 </body>
 
 </html>

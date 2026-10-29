@@ -17,7 +17,7 @@
     /* Cor de Destaque (Padrão Verde) */
     --highlight: #39D353;
     --highlight-bar-color: #2EA043;
-    
+
     /* Cores Fixas */
     --error-color: #F85149;
     --link-color: #58A6FF;
@@ -75,25 +75,54 @@ body {
 }
 .hidden { display: none !important; opacity: 0 !important; }
 
+/* Scrollbars no tema do OS (nativas claras destoam do tema escuro) */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: var(--bg-color); }
+::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 6px; }
+::-webkit-scrollbar-thumb:hover { background: var(--highlight-bar-color); }
+::-webkit-scrollbar-corner { background: transparent; }
+
 #boot-container {
     display: flex; flex-direction: column; justify-content: center;
     min-height: 100vh; padding: 2rem;
     font-family: 'Space Mono', monospace; color: var(--text-secondary);
 }
-#boot-log { white-space: pre-wrap; max-height: 70vh; overflow-y: auto; }
+#boot-logo {
+    color: var(--highlight);
+    font-size: clamp(0.45rem, 1.6vw, 1.1rem);
+    line-height: 1.25;
+    text-shadow: 0 0 12px var(--highlight-bar-color);
+    margin-bottom: 1.5rem;
+    animation: bootGlow 2s ease-in-out infinite alternate;
+}
+@keyframes bootGlow {
+    from { opacity: 0.65; text-shadow: 0 0 6px var(--highlight-bar-color); }
+    to { opacity: 1; text-shadow: 0 0 18px var(--highlight); }
+}
+#boot-log { white-space: pre-wrap; max-height: 60vh; overflow-y: auto; }
 #boot-log .success { color: var(--highlight); }
 #boot-log .warn { color: var(--warn-color); }
 .boot-loader-line { display: flex; align-items: center; margin-top: 1rem; }
 #boot-loader {
+    flex: 1;
     width: 0%; height: 10px; background-color: var(--highlight);
     margin-right: 10px; box-shadow: 0 0 10px var(--highlight-bar-color);
     transition: width 0.1s linear, background-color 0.3s, box-shadow 0.3s;
 }
-#boot-status { color: var(--highlight); font-weight: 700; transition: color 0.3s; }
+#boot-status { color: var(--highlight); font-weight: 700; transition: color 0.3s; white-space: nowrap; }
+#boot-skip {
+    margin-top: 1.5rem; align-self: flex-start;
+    background: none; border: 1px solid var(--border-color);
+    color: var(--text-secondary); font-family: 'Space Mono', monospace;
+    font-size: 0.85rem; padding: 6px 14px; border-radius: 6px;
+    cursor: pointer; opacity: 0.7;
+    transition: opacity 0.2s, border-color 0.2s, color 0.2s;
+}
+#boot-skip:hover { opacity: 1; border-color: var(--highlight); color: var(--highlight); }
 
 /* 3. DESKTOP ENVIRONMENT */
 #desktop-environment {
-    width: 100vw; height: 100vh;
+    width: 100vw; height: 100vh; height: 100dvh;
     /* Papel de parede padrão - será controlado por JS */
     background-image: url('https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1770&q=80');
     background-size: cover; background-position: center;
@@ -106,16 +135,18 @@ body {
     display: flex; flex-direction: column; align-items: center;
     width: 80px; padding: 10px; margin: 20px;
     cursor: pointer; border-radius: 8px;
-    transition: background-color 0.2s ease;
+    transition: background-color 0.2s ease, transform 0.2s ease;
 }
-.desktop-icon:hover { background-color: rgba(255, 255, 255, 0.1); }
-.desktop-icon img { width: 48px; height: 48px; }
+.desktop-icon:hover { background-color: rgba(255, 255, 255, 0.1); transform: scale(1.05); }
+.desktop-icon:active { transform: scale(0.97); }
+.desktop-icon img { width: 48px; height: 48px; pointer-events: none; }
 .desktop-icon span {
     color: var(--desktop-font-color);
     font-family: 'Space Grotesk', sans-serif;
     font-size: 0.9rem;
     text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
     text-align: center; margin-top: 5px;
+    pointer-events: none;
 }
 
 /* 4. BARRA DE TAREFAS */
@@ -124,6 +155,7 @@ body {
     width: 100%; height: 40px;
     background-color: var(--taskbar-bg);
     backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     border-top: 1px solid var(--border-color);
     display: flex; align-items: center;
     padding: 0 10px;
@@ -139,14 +171,15 @@ body {
 .start-menu-button img { width: 24px; margin-right: 5px; }
 .start-menu-button span { color: var(--text-color); font-family: 'Space Grotesk', sans-serif; }
 .taskbar-divider { width: 1px; height: 25px; background-color: var(--border-color); margin: 0 10px; }
-#taskbar-icons { display: flex; height: 100%; }
+#taskbar-icons { display: flex; height: 100%; overflow-x: auto; }
 .taskbar-app-icon {
     display: flex; align-items: center;
     padding: 0 10px; margin: 0 2px;
     height: 100%; cursor: pointer;
     background-color: transparent;
     border-bottom: 2px solid transparent;
-    transition: background-color 0.2s;
+    transition: background-color 0.2s, border-bottom 0.3s;
+    white-space: nowrap;
 }
 .taskbar-app-icon:hover { background-color: var(--border-color); }
 .taskbar-app-icon.active {
@@ -156,12 +189,21 @@ body {
 }
 .taskbar-app-icon img { width: 20px; margin-right: 5px; }
 .taskbar-app-icon span { color: var(--text-color); font-size: 0.9rem; }
+#sound-toggle {
+    margin-left: auto;
+    background: none; border: none; cursor: pointer;
+    font-size: 1rem; line-height: 1;
+    padding: 4px 8px; border-radius: 4px;
+    opacity: 0.85;
+    transition: background-color 0.2s, opacity 0.2s;
+}
+#sound-toggle:hover { background-color: var(--border-color); opacity: 1; }
 .taskbar-clock {
-    margin-left: auto; color: var(--text-color);
+    color: var(--text-color);
     padding: 0 10px; font-size: 0.9rem;
 }
 
-/* 5. MENU INICIAR (NOVO) */
+/* 5. MENU INICIAR */
 #start-menu {
     position: fixed;
     bottom: 40px; /* Acima da barra de tarefas */
@@ -170,6 +212,7 @@ body {
     height: 400px;
     background-color: var(--taskbar-bg);
     backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     border: 1px solid var(--border-color);
     border-radius: 0 8px 0 0;
     z-index: 9999; /* Abaixo da barra de tarefas, acima das janelas */
@@ -234,7 +277,7 @@ body {
 }
 
 
-/* 6. JANELAS (Atualizado) */
+/* 6. JANELAS */
 .window {
     position: absolute;
     top: 50px; left: 50px;
@@ -246,7 +289,28 @@ body {
     overflow: auto;
     min-width: 300px; min-height: 200px;
     display: flex; flex-direction: column;
-    transition: background-color 0.3s, border-color 0.3s;
+    transition: background-color 0.3s, border-color 0.3s, box-shadow 0.2s;
+}
+.window.opening { animation: windowOpen 0.2s cubic-bezier(0.34, 1.3, 0.64, 1); }
+.window.closing { animation: windowClose 0.15s ease-in forwards; }
+.window.minimizing { animation: windowMinimize 0.18s ease-in forwards; }
+.window.maximized {
+    top: 0 !important; left: 0 !important;
+    width: 100vw !important; height: calc(100vh - 40px) !important;
+    border-radius: 0; resize: none;
+    border-left: none; border-right: none; border-top: none;
+}
+@keyframes windowOpen {
+    from { opacity: 0; transform: scale(0.92) translateY(10px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes windowClose {
+    from { opacity: 1; transform: scale(1); }
+    to { opacity: 0; transform: scale(0.92); }
+}
+@keyframes windowMinimize {
+    from { opacity: 1; transform: scale(1) translateY(0); }
+    to { opacity: 0; transform: scale(0.6) translateY(60vh); }
 }
 .window-header {
     background-color: var(--bg-color);
@@ -254,16 +318,25 @@ body {
     display: flex; justify-content: space-between; align-items: center;
     border-bottom: 1px solid var(--border-color);
     cursor: move; user-select: none;
+    touch-action: none;
     transition: background-color 0.3s, border-color 0.3s;
 }
 .window-title { font-family: 'Space Grotesk', sans-serif; font-weight: 700; color: var(--text-secondary); }
-.window-close {
-    background-color: var(--error-color);
+.window-controls { display: flex; align-items: center; gap: 6px; }
+.window-btn, .window-close {
     border: none; color: white;
     width: 20px; height: 20px;
     border-radius: 50%; font-weight: bold;
     cursor: pointer; line-height: 18px;
+    font-size: 0.85rem;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0;
+    transition: filter 0.15s, transform 0.15s;
 }
+.window-btn:hover, .window-close:hover { filter: brightness(1.25); transform: scale(1.1); }
+.window-btn.minimize { background-color: var(--warn-color); }
+.window-btn.maximize { background-color: var(--highlight); }
+.window-close { background-color: var(--error-color); }
 .window-body {
     padding: 1.5rem;
     flex-grow: 1;
@@ -292,7 +365,7 @@ body {
     border-radius: 8px; padding: 1.5rem;
     transition: transform 0.3s ease, background-color 0.3s, border-color 0.3s;
 }
-.project-card:hover { transform: translateY(-5px); }
+.project-card:hover { transform: translateY(-5px); border-color: var(--highlight-bar-color); }
 .project-card h3 { color: var(--link-color); margin-bottom: 1rem; font-size: 1.2rem; transition: color 0.3s; }
 .card-tech-tags { margin: 1rem 0; }
 .tech-tag {
@@ -327,11 +400,16 @@ body {
 .terminal-output-line.response .project-title { color: var(--link-color); font-weight: 700; }
 .terminal-output-line.response a { color: var(--link-color); text-decoration: underline; }
 .terminal-output-line.neofetch-ascii { color: var(--highlight); font-weight: 700; font-size: 0.9rem; }
-.terminal-output-line.neofetch-info .info-label { color: var(--highlight); font-weight: 700; width: 120px; }
+.terminal-output-line.neofetch-info .info-label {
+    color: var(--highlight);
+    font-weight: 700;
+    display: inline-block;
+    width: 110px;
+}
 .terminal-output-line.response .ls-dir { color: var(--link-color); font-weight: 700; }
 .terminal-output-line.response .ls-exec { color: var(--highlight); font-weight: 700; }
 
-/* Janela de Configurações (NOVO) */
+/* Janela de Configurações */
 .settings-body {
     background-color: var(--window-bg);
 }
@@ -354,6 +432,10 @@ body {
     margin-bottom: 5px;
     font-size: 1.1rem;
     cursor: pointer;
+}
+.toggle-label {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 1.05rem; cursor: pointer;
 }
 .swatch-group {
     display: flex;
@@ -396,30 +478,136 @@ body {
     box-shadow: 0 0 10px var(--highlight);
 }
 
-/* 8. MODO CLÁSSICO (PARA MOBILE) */
-#classic-wrapper {
-    max-width: 900px; margin: 0 auto; padding: 1rem;
-    opacity: 0; transition: opacity 1s ease-in-out;
+/* 8. EFEITOS: CRT, MATRIX, CONTEXTO, TOAST, SNAKE */
+#crt-overlay {
+    position: fixed; top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    pointer-events: none;
+    z-index: 99990;
+    opacity: 0;
+    transition: opacity 0.5s;
+    background: repeating-linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 0.12) 0px,
+        rgba(0, 0, 0, 0.12) 1px,
+        transparent 1px,
+        transparent 3px
+    );
 }
-#classic-wrapper.visible { opacity: 1; }
-.classic-hero { text-align: center; padding: 4rem 1rem; border-bottom: 1px solid var(--border-color); }
-.classic-hero h1 { color: var(--highlight); }
-.classic-hero .links { margin-top: 2rem; }
-.classic-section { padding: 3rem 1rem; }
-.classic-section h2 { margin-bottom: 2rem; border-bottom: 2px solid var(--highlight-bar-color); padding-bottom: 0.5rem; }
-/* Botões */
-.cta-button {
-    font-family: 'Space Grotesk', sans-serif;
-    background-color: var(--highlight-bar-color); color: var(--bg-color);
-    text-decoration: none; padding: 12px 24px; border-radius: 6px;
-    font-weight: 700; display: inline-block; border: 1px solid transparent; cursor: pointer;
-    transition: background-color 0.3s, color 0.3s;
+body[data-crt="on"] #crt-overlay {
+    opacity: 1;
+    box-shadow: inset 0 0 120px rgba(0, 0, 0, 0.55);
+    animation: crtFlicker 4s infinite;
 }
-.cta-button.secondary {
-    background-color: transparent; border-color: var(--highlight-bar-color);
-    color: var(--highlight); margin-left: 1rem;
-    transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+@keyframes crtFlicker {
+    0%, 100% { opacity: 1; }
+    97% { opacity: 1; }
+    98% { opacity: 0.82; }
+    99% { opacity: 0.95; }
 }
+
+#matrix-canvas {
+    position: fixed; top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    z-index: 99995;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.4s;
+}
+#matrix-canvas.visible { opacity: 1; }
+
+#context-menu {
+    position: fixed;
+    min-width: 210px;
+    background-color: var(--window-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+    padding: 5px;
+    z-index: 99996;
+    animation: contextIn 0.12s ease-out;
+}
+@keyframes contextIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+.context-item {
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    color: var(--text-color);
+    transition: background-color 0.15s;
+}
+.context-item:hover { background-color: var(--highlight-bar-color); color: #FFF; }
+.context-divider { height: 1px; background-color: var(--border-color); margin: 5px 8px; }
+
+#toast-notification {
+    position: fixed;
+    right: 16px; bottom: 56px;
+    width: min(340px, calc(100vw - 32px));
+    background-color: var(--window-bg);
+    border: 1px solid var(--border-color);
+    border-left: 4px solid var(--highlight);
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+    padding: 12px 14px;
+    display: flex; align-items: center; gap: 12px;
+    z-index: 99997; /* acima da chuva de Matrix (99995) */
+    cursor: pointer;
+    animation: toastIn 0.35s cubic-bezier(0.34, 1.3, 0.64, 1);
+}
+@keyframes toastIn {
+    from { opacity: 0; transform: translateX(60px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+#toast-notification img { width: 32px; height: 32px; flex-shrink: 0; }
+.toast-text { display: flex; flex-direction: column; line-height: 1.35; }
+.toast-text strong { color: var(--text-color); font-size: 0.95rem; }
+.toast-text span { color: var(--text-secondary); font-size: 0.85rem; }
+.toast-close {
+    margin-left: auto; align-self: flex-start;
+    background: none; border: none; color: var(--text-secondary);
+    font-size: 1.1rem; cursor: pointer; line-height: 1;
+    padding: 2px;
+}
+.toast-close:hover { color: var(--text-color); }
+
+.snake-body {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 10px;
+}
+.snake-hud {
+    width: 100%; max-width: 440px;
+    display: flex; justify-content: space-between;
+    font-weight: 700; color: var(--highlight);
+}
+#snake-canvas {
+    background-color: var(--terminal-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    max-width: 100%;
+}
+.snake-help { color: var(--text-secondary); font-size: 0.8rem; text-align: center; }
+.help-coarse { display: none; }
+@media (pointer: coarse), (max-width: 767px) {
+    .help-fine { display: none; }
+    .help-coarse { display: inline; }
+    .snake-help { color: var(--text-color); }
+}
+.snake-dpad { display: none; flex-direction: column; align-items: center; gap: 4px; }
+.snake-dpad .dpad-row { display: flex; gap: 4px; }
+.snake-dpad button {
+    width: 52px; height: 44px;
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-color);
+    font-size: 1rem;
+    cursor: pointer;
+    touch-action: manipulation;
+}
+.snake-dpad button:active { background-color: var(--highlight-bar-color); }
 
 /* 9. TELAS DE EFEITO (BSOD, SHUTDOWN) */
 #bsod-screen {
@@ -429,6 +617,7 @@ body {
     color: #FFF; font-family: 'Consolas', 'Space Mono', monospace;
     padding: 5%; z-index: 99998;
     opacity: 0; transition: opacity 0.2s ease-in;
+    cursor: pointer;
 }
 #bsod-screen.visible { opacity: 1; }
 .bsod-content h1 { font-family: 'Consolas', 'Space Mono', monospace; font-size: 8rem; font-weight: 400; }
@@ -449,3 +638,77 @@ body {
 }
 #shutdown-screen.visible { opacity: 1; }
 #shutdown-screen h1 { font-size: 3rem; }
+
+/* 10. MOBILE — o LuizOS vai pra todo mundo */
+@media (max-width: 767px) {
+    #desktop-environment {
+        display: flex; flex-wrap: wrap;
+        align-content: flex-start;
+        justify-content: space-around;
+        padding-top: 8px;
+    }
+    .desktop-icon {
+        width: 72px; margin: 10px 4px;
+        padding: 8px 4px;
+    }
+    .desktop-icon img { width: 42px; height: 42px; }
+    .desktop-icon span { font-size: 0.75rem; }
+
+    .window {
+        left: 0 !important; top: 0 !important;
+        width: 100vw !important;
+        height: calc(100vh - 44px) !important;
+        height: calc(100dvh - 44px) !important;
+        min-width: 0; min-height: 0;
+        border-radius: 0; resize: none;
+        border-left: none; border-right: none; border-top: none;
+    }
+    .window.maximized {
+        height: calc(100vh - 40px) !important;
+        height: calc(100dvh - 40px) !important;
+    }
+
+    #taskbar { height: 44px; padding: 0 6px; }
+    #start-menu { bottom: 44px; }
+    .start-menu-button span { display: none; }
+    .start-menu-button img { margin-right: 0; }
+    .taskbar-app-icon span { display: none; }
+    .taskbar-clock { font-size: 0.8rem; padding: 0 4px; }
+    #sound-toggle { padding: 4px 4px; }
+
+    .window-header { padding: 8px 8px; }
+    .window-title { font-size: 0.85rem; }
+    .window-body { padding: 1rem; }
+    .window-body.text-file { font-size: 0.95rem; }
+
+    .terminal-prompt { padding: 0.5rem 0.75rem; }
+    #terminal-output { padding: 1rem 0.75rem; }
+    #terminal-input { font-size: 16px; } /* evita zoom automático no iOS */
+    .prompt-prefix { font-size: 0.8rem; }
+
+    .project-card-grid { grid-template-columns: 1fr; gap: 1rem; }
+
+    .settings-body h3 { font-size: 1.1rem; }
+    .radio-group label { font-size: 1rem; }
+    .wallpaper-group { grid-template-columns: repeat(2, 1fr); }
+
+    .snake-dpad { display: flex; }
+    #snake-canvas { width: 100%; height: auto; }
+
+    #boot-logo { font-size: clamp(0.35rem, 2.4vw, 0.9rem); }
+    #bsod-screen { padding: 8%; overflow-y: auto; }
+    .bsod-content h1 { font-size: 4.5rem; }
+    .bsod-content p { font-size: 1.05rem; }
+    #toast-notification { right: 8px; bottom: 58px; }
+
+    #start-menu { width: min(300px, 80vw); }
+}
+
+/* 11. ACESSIBILIDADE: movimento reduzido */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
