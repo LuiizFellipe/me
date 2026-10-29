@@ -8,7 +8,7 @@
     <meta name="description"
         content="LuizOS — o portfólio interativo de Luiz Felipe Andrich. Um desktop de sistema operacional direto no navegador, com terminal funcional, temas e easter eggs.">
     <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://img.icons8.com https://images.unsplash.com; object-src 'none'; base-uri 'none'; form-action 'none'">
+        content="default-src 'self'; script-src 'self'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://img.icons8.com https://images.unsplash.com; object-src 'none'; base-uri 'none'; form-action 'none'">
     <link rel="icon"
         href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%96%A5%EF%B8%8F%3C/text%3E%3C/svg%3E">
     <meta property="og:type" content="website">
@@ -25,7 +25,7 @@
     <meta name="twitter:description"
         content="Um portfólio que é um sistema operacional no navegador. Abra o terminal, explore os projetos e tente o 'sudo'.">
     <meta name="twitter:image" content="https://luizfelipe.dev.br/assets/og-image.jpg">
-    <link rel="stylesheet" href="style.css?v=2026.10">
+    <link rel="stylesheet" href="style.css?v=2026.11">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -76,6 +76,21 @@
         <div class="desktop-icon" data-window="settings-window">
             <img src="https://img.icons8.com/fluency/48/settings.png" alt="Settings Icon" />
             <span>Configurações</span>
+        </div>
+
+        <div class="desktop-icon" data-window="ide-window">
+            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect x='4' y='6' width='40' height='36' rx='5' fill='%231E293B'/%3E%3Crect x='4' y='6' width='40' height='8' rx='4' fill='%23334155'/%3E%3Ccircle cx='10' cy='10' r='1.6' fill='%23F87171'/%3E%3Ccircle cx='15' cy='10' r='1.6' fill='%23FBBF24'/%3E%3Ccircle cx='20' cy='10' r='1.6' fill='%2334D399'/%3E%3Cpath d='M16 19l-7 6 7 6' stroke='%23F59E0B' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M32 19l7 6-7 6' stroke='%23F59E0B' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M27 17l-6 14' stroke='%2334D399' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E" alt="IDE Icon" />
+            <span>Code.js</span>
+        </div>
+
+        <div class="desktop-icon" data-window="browser-window">
+            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Ccircle cx='24' cy='24' r='19' fill='%232563EB'/%3E%3Cellipse cx='24' cy='24' rx='9' ry='19' fill='none' stroke='%23BFDBFE' stroke-width='2.5'/%3E%3Cpath d='M5 24h38M8.5 14h31M8.5 34h31' stroke='%23BFDBFE' stroke-width='2.5' fill='none'/%3E%3C/svg%3E" alt="Browser Icon" />
+            <span>Navegador</span>
+        </div>
+
+        <div class="desktop-icon" data-window="chat-window">
+            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Ccircle cx='24' cy='24' r='20' fill='%2325D366'/%3E%3Cpath d='M24 12c-6.6 0-12 5.2-12 11.6 0 2.1.6 4.1 1.6 5.8L12 36l6.9-1.8c1.6.9 3.3 1.4 5.1 1.4 6.6 0 12-5.2 12-11.9S30.6 12 24 12z' fill='%23fff'/%3E%3Cpath d='M19.4 18.6c.4-.6 1.2-.6 1.6 0l1.2 1.8c.3.5.2 1.2-.2 1.6l-.8.8c.9 1.7 2.3 3.1 4 3.9l.8-.8c.4-.4 1.1-.5 1.6-.2l1.8 1.2c.6.4.7 1.2.1 1.7-1.1 1-2.5 1.4-3.9 1-3.2-1-5.9-3.7-6.9-6.9-.4-1.4 0-2.8.7-4.1z' fill='%2325D366'/%3E%3C/svg%3E" alt="Chat Icon" />
+            <span>WhatsApp</span>
         </div>
 
         <div id="about-window" class="window hidden" style="width: 400px; height: 350px;">
@@ -295,6 +310,77 @@
             </div>
         </div>
 
+        <div id="ide-window" class="window hidden" style="width: 640px; height: 520px;">
+            <div class="window-header">
+                <span class="window-title">Code.js — Luiz IDE</span>
+                <div class="window-controls">
+                    <button class="window-btn minimize" data-action="minimize" data-window="ide-window" aria-label="Minimizar">–</button>
+                    <button class="window-btn maximize" data-action="maximize" data-window="ide-window" aria-label="Maximizar">□</button>
+                    <button class="window-close" data-window="ide-window" aria-label="Fechar">×</button>
+                </div>
+            </div>
+            <div class="window-body ide-body">
+                <div class="ide-tabs">
+                    <button class="ide-tab active" data-file="sobre.js" type="button">sobre.js</button>
+                    <button class="ide-tab" data-file="contato.sh" type="button">contato.sh</button>
+                    <button class="ide-tab" data-file="playground.js" type="button">playground.js ✎</button>
+                </div>
+                <div class="ide-editor" id="ide-editor"><pre><code id="ide-code"></code></pre></div>
+                <textarea id="ide-playground" class="ide-playground hidden" spellcheck="false"
+                    autocapitalize="none" autocomplete="off"></textarea>
+                <div class="ide-toolbar">
+                    <button id="ide-run" type="button">▶ RUN</button>
+                    <span class="ide-hint">playground.js roda de verdade num sandbox (timeout de 2s)</span>
+                </div>
+                <div class="ide-console" id="ide-console">
+                    <span class="ide-console-hint">// a saída do console aparece aqui</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="browser-window" class="window hidden" style="width: 700px; height: 520px;">
+            <div class="window-header">
+                <span class="window-title">Luiz Browser</span>
+                <div class="window-controls">
+                    <button class="window-btn minimize" data-action="minimize" data-window="browser-window" aria-label="Minimizar">–</button>
+                    <button class="window-btn maximize" data-action="maximize" data-window="browser-window" aria-label="Maximizar">□</button>
+                    <button class="window-close" data-window="browser-window" aria-label="Fechar">×</button>
+                </div>
+            </div>
+            <div class="window-body browser-body">
+                <div class="browser-toolbar">
+                    <button id="browser-back" type="button" aria-label="Voltar">◀</button>
+                    <button id="browser-forward" type="button" aria-label="Avançar">▶</button>
+                    <div class="browser-addressbar">
+                        <span class="browser-lock">🔒</span>
+                        <input id="browser-address" type="text" value="luiiz://home" spellcheck="false" autocapitalize="none" autocomplete="off">
+                    </div>
+                    <button id="browser-go" type="button" aria-label="Ir">➤</button>
+                </div>
+                <div class="browser-loading" id="browser-loading"></div>
+                <div class="browser-viewport" id="browser-viewport"></div>
+            </div>
+        </div>
+
+        <div id="chat-window" class="window hidden" style="width: 380px; height: 560px;">
+            <div class="window-header chat-header">
+                <img src="https://img.icons8.com/fluency/48/user-male-circle.png" alt="" class="chat-avatar" />
+                <div class="chat-header-info">
+                    <strong>Luiz Felipe</strong>
+                    <span id="chat-status">online</span>
+                </div>
+                <div class="window-controls">
+                    <button class="window-btn minimize" data-action="minimize" data-window="chat-window" aria-label="Minimizar">–</button>
+                    <button class="window-btn maximize" data-action="maximize" data-window="chat-window" aria-label="Maximizar">□</button>
+                    <button class="window-close" data-window="chat-window" aria-label="Fechar">×</button>
+                </div>
+            </div>
+            <div class="window-body chat-body">
+                <div class="chat-messages" id="chat-messages"></div>
+                <div class="chat-chips" id="chat-chips"></div>
+            </div>
+        </div>
+
 
         <div id="start-menu" class="hidden">
             <div class="start-menu-sidebar">
@@ -314,6 +400,18 @@
                 <div class="start-menu-item" data-window="terminal-window">
                     <img src="https://img.icons8.com/fluency/48/console.png" alt="Terminal" />
                     <span>Terminal</span>
+                </div>
+                <div class="start-menu-item" data-window="ide-window">
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect x='4' y='6' width='40' height='36' rx='5' fill='%231E293B'/%3E%3Cpath d='M16 19l-7 6 7 6' stroke='%23F59E0B' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M32 19l7 6-7 6' stroke='%23F59E0B' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M27 17l-6 14' stroke='%2334D399' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E" alt="IDE" />
+                    <span>Code.js</span>
+                </div>
+                <div class="start-menu-item" data-window="browser-window">
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Ccircle cx='24' cy='24' r='19' fill='%232563EB'/%3E%3Cellipse cx='24' cy='24' rx='9' ry='19' fill='none' stroke='%23BFDBFE' stroke-width='2.5'/%3E%3Cpath d='M5 24h38M8.5 14h31M8.5 34h31' stroke='%23BFDBFE' stroke-width='2.5' fill='none'/%3E%3C/svg%3E" alt="Navegador" />
+                    <span>Navegador</span>
+                </div>
+                <div class="start-menu-item" data-window="chat-window">
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Ccircle cx='24' cy='24' r='20' fill='%2325D366'/%3E%3Cpath d='M24 12c-6.6 0-12 5.2-12 11.6 0 2.1.6 4.1 1.6 5.8L12 36l6.9-1.8c1.6.9 3.3 1.4 5.1 1.4 6.6 0 12-5.2 12-11.9S30.6 12 24 12z' fill='%23fff'/%3E%3C/svg%3E" alt="WhatsApp" />
+                    <span>WhatsApp</span>
                 </div>
                 <div class="start-menu-divider"></div>
                 <div class="start-menu-item" data-window="settings-window">
@@ -350,6 +448,7 @@
         <div class="context-item" data-action="next-wallpaper">Próximo papel de parede</div>
         <div class="context-item" data-action="toggle-theme">Alternar tema</div>
         <div class="context-item" data-action="open-terminal">Abrir terminal</div>
+        <div class="context-item" data-action="organize-icons">Organizar ícones</div>
         <div class="context-divider"></div>
         <div class="context-item" data-action="reload">Atualizar</div>
         <div class="context-item" data-action="about-os">Sobre o LuizOS</div>
@@ -387,7 +486,7 @@
         <p>Obrigado pela visita!</p>
     </div>
 
-    <script src="script.js?v=2026.10"></script>
+    <script src="script.js?v=2026.11"></script>
 </body>
 
 </html>

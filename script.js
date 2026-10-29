@@ -38,6 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let spawnOffset = 0;
     let focusedWindowId = null;
     let terminalAPI = null;
+    let chatAPI = null;
 
     // Helper 'sleep'
     function sleep(ms) {
@@ -207,11 +208,16 @@ document.addEventListener('DOMContentLoaded', () => {
         initWindowManager();
         initSettingsApp();
         terminalAPI = initTerminal();
+        chatAPI = initChatApp();
         initClock();
         initContextMenu();
         initShortcuts();
         initParallax();
         initToast();
+        initIdeApp();
+        initBrowserApp();
+        initIconDrag();
+        initKonami();
         startInactivityTimer();
 
         ['click', 'mousemove', 'keydown', 'scroll', 'touchstart'].forEach(event => {
@@ -367,6 +373,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!options.silent) SFX.open();
         if (windowId === 'terminal-window') document.getElementById('terminal-input').focus();
         if (windowId === 'snake-window') Snake.resume();
+        if (windowId === 'chat-window' && chatAPI) chatAPI.start();
+        const openAchievements = { 'ide-window': 'ide', 'browser-window': 'browser', 'chat-window': 'chat' };
+        if (openAchievements[windowId]) Achievements.unlock(openAchievements[windowId]);
     }
 
     function closeWindow(windowId) {
@@ -374,6 +383,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!windowEl || windowEl.classList.contains('hidden')) return;
         SFX.close();
         if (windowId === 'snake-window') Snake.pause();
+        if (windowId === 'chat-window' && chatAPI) chatAPI.cancel();
 
         windowEl.classList.add('closing');
         windowEl._transitionTimer = setTimeout(() => {
@@ -595,7 +605,7 @@ Email:    <a href="mailto:${LINKS.email}">${LINKS.email}</a>`,
             'whoami': 'luiz_felipe_andrich (O dev que você estava procurando)',
             'date': () => `Hoje é ${new Date().toLocaleDateString('pt-BR', { dateStyle: 'full' })}... Hora de me contratar.`,
             'cat': 'Uso: cat [arquivo] — disponíveis: about.txt, contact.sh',
-            'open': 'Uso: open [app] — apps: about, projects, terminal, settings, snake',
+            'open': 'Uso: open [app] — apps: about, projects, terminal, settings, snake, ide, browser, chat',
             'theme': 'Uso: theme [nome] — temas: dark, light, matrix',
             'clear': '',
             'sudo': '<span class="error">Acesso negado.</span> Mas legal você ter tentado. 😉 (dica: tente <span class="highlight">sudo hire-luiz</span>)',
@@ -608,7 +618,10 @@ Email:    <a href="mailto:${LINKS.email}">${LINKS.email}</a>`,
             projects: 'projects-window', projetos: 'projects-window',
             terminal: 'terminal-window',
             settings: 'settings-window', configuracoes: 'settings-window',
-            snake: 'snake-window', game: 'snake-window'
+            snake: 'snake-window', game: 'snake-window',
+            ide: 'ide-window', code: 'ide-window',
+            browser: 'browser-window', navegador: 'browser-window',
+            chat: 'chat-window', whatsapp: 'chat-window'
         };
 
         terminalBodyEl.addEventListener('click', () => terminalInputEl.focus());
@@ -652,8 +665,10 @@ Email:    <a href="mailto:${LINKS.email}">${LINKS.email}</a>`,
 
         async function processCommand(command) {
             if (command === 'clear') { terminalOutputEl.innerHTML = ''; return; }
+            if (command === 'sudo hire-luiz') Achievements.unlock('hire');
             if (command === 'matrix') {
                 MatrixRain.toggle();
+                Achievements.unlock('matrix');
                 logToTerminal(MatrixRain.isActive() ? '<span class="success">Bem-vindo à Matrix...</span> (digite matrix de novo para sair)' : 'Voltei ao mundo real.', 'response');
                 return;
             }
@@ -724,6 +739,7 @@ Email:    <a href="mailto:${LINKS.email}">${LINKS.email}</a>`,
                 await logToTerminal(step, 'response');
                 await sleep(350);
             }
+            Achievements.unlock('hack');
         }
 
         async function logToTerminal(text, typeClass) {
@@ -867,6 +883,9 @@ Email:    <a href="mailto:${LINKS.email}">${LINKS.email}</a>`,
                 }
                 case 'open-terminal':
                     openWindow('terminal-window');
+                    break;
+                case 'organize-icons':
+                    document.dispatchEvent(new Event('luizos:organize-icons'));
                     break;
                 case 'reload':
                     location.reload();
@@ -1076,6 +1095,7 @@ Email:    <a href="mailto:${LINKS.email}">${LINKS.email}</a>`,
             snake.unshift(head);
             if (willEat) {
                 score++;
+                if (score === 5) Achievements.unlock('snake5');
                 SFX.key();
                 spawnFood();
                 updateHud();
@@ -1175,7 +1195,497 @@ Email:    <a href="mailto:${LINKS.email}">${LINKS.email}</a>`,
         };
     })();
 
-    // --- 15. EFEITO BSOD (TELA AZUL) ---
+    // --- 15. CONQUISTAS ---
+    const Achievements = (() => {
+        const KEY = 'luizos-achievements';
+        const DEFS = {
+            ide: 'Código aberto — você entrou na Luiz IDE',
+            browser: 'Explorador — navegou na LuizNet',
+            chat: 'Social — conversou com o Luiz Bot',
+            matrix: 'Hacker — você entrou na Matrix',
+            hack: 'Script kiddie — rodou a sequência de invasão',
+            hire: 'RH detector — descobriu o sudo hire-luiz',
+            snake5: 'Dedos rápidos — 5+ pontos no Snake',
+            konami: 'Cheat code — Konami aceito!'
+        };
+
+        function list() {
+            try {
+                const v = JSON.parse(localStorage.getItem(KEY) || '[]');
+                return Array.isArray(v) ? v.filter(x => typeof x === 'string') : [];
+            } catch (e) { return []; }
+        }
+        const seen = new Set(list());
+
+        function show(title) {
+            SFX.notify();
+            const toast = document.createElement('div');
+            toast.className = 'achievement-toast';
+            toast.innerHTML = '<span class="ach-icon">🏆</span><span class="ach-text"><strong>Conquista desbloqueada</strong><span class="ach-title"></span></span>';
+            toast.querySelector('.ach-title').textContent = title;
+            const stack = document.querySelectorAll('.achievement-toast:not(.out)').length;
+            toast.style.top = (18 + stack * 74) + 'px';
+            document.body.appendChild(toast);
+            setTimeout(() => toast.classList.add('out'), 3800);
+            setTimeout(() => toast.remove(), 4400);
+        }
+
+        function unlock(id) {
+            if (!DEFS[id] || seen.has(id)) return;
+            seen.add(id);
+            const got = list();
+            got.push(id);
+            try { localStorage.setItem(KEY, JSON.stringify(got)); } catch (e) { /* storage bloqueado */ }
+            show(DEFS[id]);
+        }
+
+        return { unlock };
+    })();
+
+    // --- 16. LUIZ IDE (Code.js) ---
+    const IDE_FILES = {
+        'sobre.js': `const luiz = {
+  nome: "Luiz Felipe Andrich",
+  role: "AI Engineer & Fullstack Dev",
+  stack: ["TypeScript", "Next.js", "NestJS", "Supabase"],
+  filosofia: "a ferramenta certa para cada problema",
+  contratar: () => "a melhor decisao da sua sprint"
+};`,
+        'contato.sh': `#!/bin/bash
+echo "LinkedIn: ${LINKS.linkedin}"
+echo "GitHub:   ${LINKS.github}"
+echo "Email:    ${LINKS.email}"
+# aberto a oportunidades`
+    };
+    const PLAYGROUND_DEFAULT = `// Escreva JavaScript e clique em RUN
+console.log("Ola, visitante! 👋");
+
+const stack = ["TypeScript", "Next.js", "NestJS", "Supabase"];
+stack.forEach((tech, i) => console.log("Stack[" + i + "]:", tech));`;
+
+    function highlightCode(code) {
+        const pattern = /(\/\/[^\n]*|#[^\n]*)|("(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*')|\b(const|let|var|function|return|if|else|for|while|new|echo|async|await)\b|(\d+)/g;
+        let out = '', last = 0, m;
+        while ((m = pattern.exec(code)) !== null) {
+            out += escapeHTML(code.slice(last, m.index));
+            const cls = m[1] ? 'tok-com' : m[2] ? 'tok-str' : m[3] ? 'tok-kw' : 'tok-num';
+            out += '<span class="' + cls + '">' + escapeHTML(m[0]) + '</span>';
+            last = m.index + m[0].length;
+        }
+        out += escapeHTML(code.slice(last));
+        return out;
+    }
+
+    function initIdeApp() {
+        const codeEl = document.getElementById('ide-code');
+        const editorEl = document.getElementById('ide-editor');
+        const playgroundEl = document.getElementById('ide-playground');
+        const consoleEl = document.getElementById('ide-console');
+        if (!codeEl) return;
+
+        playgroundEl.value = PLAYGROUND_DEFAULT;
+
+        function openFile(name) {
+            document.querySelectorAll('.ide-tab').forEach(t => t.classList.toggle('active', t.dataset.file === name));
+            if (name === 'playground.js') {
+                editorEl.classList.add('hidden');
+                playgroundEl.classList.remove('hidden');
+            } else {
+                playgroundEl.classList.add('hidden');
+                editorEl.classList.remove('hidden');
+                codeEl.innerHTML = highlightCode(IDE_FILES[name] || '');
+            }
+        }
+
+        document.querySelectorAll('.ide-tab').forEach(tab => {
+            tab.addEventListener('click', () => { SFX.click(); openFile(tab.dataset.file); });
+        });
+        openFile('sobre.js');
+
+        function renderConsole(lines, error) {
+            consoleEl.innerHTML = '';
+            lines.slice(0, 500).forEach(l => {
+                const line = document.createElement('div');
+                line.className = 'ide-console-line';
+                line.textContent = l;
+                consoleEl.appendChild(line);
+            });
+            if (error) {
+                const err = document.createElement('div');
+                err.className = 'ide-console-line ide-console-error';
+                err.textContent = '✖ ' + error;
+                consoleEl.appendChild(err);
+            }
+            if (!lines.length && !error) {
+                const hint = document.createElement('div');
+                hint.className = 'ide-console-hint';
+                hint.textContent = '// (sem saída — use console.log)';
+                consoleEl.appendChild(hint);
+            }
+            consoleEl.scrollTop = consoleEl.scrollHeight;
+        }
+
+        let currentRun = null;
+
+        document.getElementById('ide-run').addEventListener('click', () => {
+            SFX.click();
+            // cancela o run anterior (worker, timeout e blob URL)
+            if (currentRun) {
+                clearTimeout(currentRun.killer);
+                if (currentRun.worker) currentRun.worker.terminate();
+                if (currentRun.url) URL.revokeObjectURL(currentRun.url);
+                currentRun = null;
+            }
+            const code = playgroundEl.value;
+            consoleEl.innerHTML = '<span class="ide-console-hint">▶ executando...</span>';
+            let settled = false;
+            const finish = (payload) => {
+                if (settled) return;
+                settled = true;
+                const lines = Array.isArray(payload.logs) ? payload.logs : [];
+                renderConsole(lines, payload.error);
+            };
+
+            let worker = null, blobUrl = null;
+            try {
+                // o código do usuário é embutido no fonte do blob worker (sem eval — a CSP permanece estrita)
+                const src = 'const logs = [];\n' +
+                    'const console = { log: (...a) => logs.push(a.map(String).join(" ")), warn: (...a) => logs.push("[warn] " + a.map(String).join(" ")), error: (...a) => logs.push("[error] " + a.map(String).join(" ")) };\n' +
+                    'try {\n' + code + '\n self.postMessage({ ok: true, logs: logs });\n } catch (err) {\n self.postMessage({ ok: false, logs: logs, error: String(err) });\n }';
+                blobUrl = URL.createObjectURL(new Blob([src], { type: 'application/javascript' }));
+                worker = new Worker(blobUrl);
+            } catch (e) {
+                renderConsole([], 'Sandbox indisponível neste navegador (sem suporte a Worker).');
+                if (blobUrl) URL.revokeObjectURL(blobUrl);
+                return;
+            }
+            currentRun = { worker, url: blobUrl, killer: null };
+
+            const killer = setTimeout(() => {
+                worker.terminate();
+                if (blobUrl) URL.revokeObjectURL(blobUrl);
+                currentRun = null;
+                finish({ error: '⏱ Timeout de 2s — loop infinito detectado. O sandbox te salvou.' });
+            }, 2000);
+            currentRun.killer = killer;
+
+            worker.onmessage = (e) => {
+                clearTimeout(killer); worker.terminate();
+                if (blobUrl) URL.revokeObjectURL(blobUrl);
+                currentRun = null;
+                if (!e.data || typeof e.data.ok !== 'boolean') return; // postMessage alheio do código do usuário
+                finish(e.data);
+            };
+            worker.onerror = (e) => {
+                clearTimeout(killer); worker.terminate();
+                if (blobUrl) URL.revokeObjectURL(blobUrl);
+                currentRun = null;
+                finish({ error: 'Erro de sintaxe no playground: ' + (e.message || 'verifique o código') });
+            };
+        });
+    }
+
+    // --- 17. LUIZ BROWSER ---
+    function initBrowserApp() {
+        const viewport = document.getElementById('browser-viewport');
+        const address = document.getElementById('browser-address');
+        const loading = document.getElementById('browser-loading');
+        if (!viewport) return;
+
+        const history = [];
+        let historyIndex = -1;
+
+        function pageHome() {
+            return '<div class="bp bp-home"><h1>LuizNet</h1><p class="bp-sub">sua página inicial dentro do LuizOS</p>' +
+                '<div class="bp-grid">' +
+                '<a class="bp-card" href="' + LINKS.github + '" target="_blank" rel="noopener noreferrer"><strong>GitHub</strong><span>github.com/LuiizFellipe</span></a>' +
+                '<a class="bp-card" href="' + LINKS.linkedin + '" target="_blank" rel="noopener noreferrer"><strong>LinkedIn</strong><span>perfil profissional</span></a>' +
+                '<button class="bp-card bl" data-go="luiiz://projetos" type="button"><strong>Projetos</strong><span>o que o Luiz andou construindo</span></button>' +
+                '<button class="bp-card bl" data-go="luiiz://sobre" type="button"><strong>Sobre</strong><span>quem escreve esse código</span></button>' +
+                '</div></div>';
+        }
+
+        function pageProjects() {
+            const p = [
+                ['VetPilot', 'IA, exames e simulados para veterinária', 'https://vetpilot.veteduka.com.br/'],
+                ['W Check Brasil', 'Consulta veicular (+13k clientes)', 'https://app.wcheckbrasil.com.br'],
+                ['Pupify', 'Prontuários veterinários por IA', 'https://app.pupify.com.br/'],
+                ['CheckDomus', 'Vistorias com arquitetura moderna', 'https://app.checkdomus.com.br'],
+                ['LuizOS', 'este site — o repo está no GitHub', 'https://github.com/LuiizFellipe/me']
+            ];
+            return '<div class="bp"><h1>Projetos</h1><ul class="bp-list">' +
+                p.map(x => '<li><strong>' + x[0] + '</strong><span>' + x[1] + '</span><a href="' + x[2] + '" target="_blank" rel="noopener noreferrer">abrir ↗</a></li>').join('') +
+                '</ul></div>';
+        }
+
+        function pageAbout() {
+            return '<div class="bp"><h1>Sobre o Luiz</h1>' +
+                '<p>AI Engineer e desenvolvedor apaixonado por resolver quebra-cabeças complexos — usando a ferramenta certa pra cada problema.</p>' +
+                '<p><strong>Frontend:</strong> TypeScript, Next.js, Nuxt.js<br><strong>Backend:</strong> NestJS, Fastify, Supabase, N8n, RabbitMQ, Redis<br><strong>Infra:</strong> Docker, VPS</p>' +
+                '<p class="bp-dim">Dica: tenta digitar <strong>sudo hire-luiz</strong> no terminal. 😉</p></div>';
+        }
+
+        function pageSandbox(url) {
+            return '<div class="bp bp-center"><h1>🔒 Sandbox</h1>' +
+                '<p>O Luiz Browser roda 100% dentro do portfólio e não carrega sites de verdade.</p>' +
+                '<p class="bp-url">' + escapeHTML(url) + '</p>' +
+                '<a class="bp-button" href="' + escapeHTML(url) + '" target="_blank" rel="noopener noreferrer">Abrir fora do sandbox ↗</a>' +
+                '<button class="bp-button secondary bl" data-go="luiiz://home" type="button">Voltar ao início</button></div>';
+        }
+
+        function page404(url) {
+            return '<div class="bp bp-center"><h1>:(</h1><p><strong>' + escapeHTML(url) + '</strong> não existe na LuizNet.</p>' +
+                '<p class="bp-dim">Código do erro: NEED_A_DEV_LIKE_LUIZ</p>' +
+                '<button class="bp-button bl" data-go="luiiz://home" type="button">Voltar ao início</button></div>';
+        }
+
+        function render(url) {
+            if (url === 'luiiz://home') return pageHome();
+            if (url === 'luiiz://projetos') return pageProjects();
+            if (url === 'luiiz://sobre') return pageAbout();
+            if (/^https?:\/\//i.test(url)) return pageSandbox(url);
+            if (/^[a-z0-9-]+(\.[a-z0-9-]+)+/i.test(url)) return pageSandbox('https://' + url);
+            return page404(url);
+        }
+
+        let renderTimer = null;
+        function navigate(url, pushHistory = true) {
+            url = (url || '').trim();
+            if (!url) url = 'luiiz://home';
+            if (pushHistory && history[historyIndex] !== url) {
+                history.splice(historyIndex + 1);
+                history.push(url);
+                historyIndex = history.length - 1;
+            }
+            address.value = url;
+            SFX.click();
+            loading.classList.remove('active');
+            void loading.offsetWidth; // reinicia a animação da barra
+            loading.classList.add('active');
+            if (renderTimer) clearTimeout(renderTimer); // navegação rápida não pisca páginas antigas
+            renderTimer = setTimeout(() => {
+                renderTimer = null;
+                viewport.innerHTML = render(url);
+                viewport.scrollTop = 0;
+            }, 450);
+        }
+
+        viewport.addEventListener('click', (e) => {
+            const link = e.target.closest('.bl');
+            if (link) navigate(link.dataset.go);
+        });
+        document.getElementById('browser-go').addEventListener('click', () => navigate(address.value));
+        address.addEventListener('keydown', (e) => { if (e.key === 'Enter') navigate(address.value); });
+        document.getElementById('browser-back').addEventListener('click', () => {
+            if (historyIndex > 0) { historyIndex--; navigate(history[historyIndex], false); }
+        });
+        document.getElementById('browser-forward').addEventListener('click', () => {
+            if (historyIndex < history.length - 1) { historyIndex++; navigate(history[historyIndex], false); }
+        });
+
+        navigate('luiiz://home');
+    }
+
+    // --- 18. WHATSAPP (Luiz Bot) ---
+    const CHAT_TREE = {
+        start: {
+            msgs: ['Oi! 👋 Eu sou o Luiz Bot — a versão demo do Luiz.', 'Ele tá ocupado escrevendo código, então eu respondo por ele. Sobre o que a gente conversa?'],
+            chips: [['Quem é o Luiz?', 'who'], ['Quero contratar! 💼', 'hire'], ['Ver projetos', 'projects']]
+        },
+        who: {
+            msgs: ['Luiz Felipe Andrich — AI Engineer e dev fullstack.', 'Gosta de resolver quebra-cabeças complexos e de entregar produto que a pessoa realmente usa. Os detalhes estão na janela "Sobre Mim.txt".'],
+            chips: [['Show! E os projetos?', 'projects'], ['Me convenceu, quero contratar', 'hire'], ['Voltar ao início', 'start']]
+        },
+        projects: {
+            msgs: ['Destaques do portfólio: 🚀', '• VetPilot — IA pra veterinária\n• W Check — consulta veicular (+13k clientes)\n• Pupify — prontuários por IA\n• CheckDomus — vistorias online', 'Tem mais na janela Projetos ou digitando projects no terminal 😉'],
+            chips: [['Quero contratar! 💼', 'hire'], ['Quem é o Luiz?', 'who']]
+        },
+        hire: {
+            msgs: ['🎉 Excelente decisão!', 'Manda um oi pro Luiz de verdade — ele responde mais rápido do que eu:'],
+            mail: true,
+            chips: [['Voltar ao início', 'start']]
+        }
+    };
+
+    function initChatApp() {
+        const messagesEl = document.getElementById('chat-messages');
+        const chipsEl = document.getElementById('chat-chips');
+        if (!messagesEl) return { start() {}, cancel() {} };
+        let started = false;
+        let cancelled = false;
+
+        function scrollBottom() { messagesEl.scrollTop = messagesEl.scrollHeight; }
+
+        function addMsg(text, fromUser) {
+            const row = document.createElement('div');
+            row.className = 'chat-msg ' + (fromUser ? 'chat-msg-user' : 'chat-msg-bot');
+            const bubble = document.createElement('span');
+            bubble.className = 'chat-bubble';
+            bubble.textContent = text; // texto puro, nunca HTML
+            row.appendChild(bubble);
+            const time = document.createElement('span');
+            time.className = 'chat-time';
+            time.textContent = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) + (fromUser ? ' ✓✓' : '');
+            row.appendChild(time);
+            messagesEl.appendChild(row);
+            scrollBottom();
+        }
+
+        function showTyping() {
+            const row = document.createElement('div');
+            row.className = 'chat-msg chat-msg-bot chat-typing';
+            row.innerHTML = '<span class="chat-bubble chat-bubble-typing"><i></i><i></i><i></i></span>';
+            messagesEl.appendChild(row);
+            scrollBottom();
+            return row;
+        }
+
+        function showChips(nodeKey) {
+            const node = CHAT_TREE[nodeKey];
+            chipsEl.innerHTML = '';
+            (node.chips || []).forEach(([label, go]) => {
+                const chip = document.createElement('button');
+                chip.type = 'button';
+                chip.className = 'chat-chip';
+                chip.textContent = label;
+                chip.addEventListener('click', () => {
+                    SFX.click();
+                    addMsg(label, true);
+                    chipsEl.innerHTML = '';
+                    deliver(go);
+                });
+                chipsEl.appendChild(chip);
+            });
+            if (node.mail) {
+                const a = document.createElement('a');
+                a.className = 'chat-chip chat-chip-mail';
+                a.href = 'mailto:' + LINKS.email;
+                a.textContent = '✉ ' + LINKS.email;
+                chipsEl.appendChild(a);
+            }
+        }
+
+        async function deliver(nodeKey) {
+            const node = CHAT_TREE[nodeKey];
+            chipsEl.innerHTML = '';
+            await sleep(350);
+            for (const msg of node.msgs) {
+                if (cancelled) return;
+                const typingEl = showTyping();
+                await sleep(Math.min(600 + msg.length * 8, 1400));
+                if (cancelled) { typingEl.remove(); return; }
+                typingEl.remove();
+                addMsg(msg, false);
+                await sleep(180);
+            }
+            if (cancelled) return;
+            showChips(nodeKey);
+            scrollBottom();
+            if (nodeKey === 'hire') SFX.notify();
+        }
+
+        function start() {
+            if (started) return;
+            started = true;
+            setTimeout(() => deliver('start'), 600);
+        }
+
+        function cancel() {
+            cancelled = true;
+            document.querySelectorAll('.chat-typing').forEach(t => t.remove());
+        }
+
+        return { start, cancel };
+    }
+
+    // --- 19. ÍCONES ARRASTÁVEIS ---
+    function initIconDrag() {
+        if (window.matchMedia('(pointer: coarse)').matches) return; // no touch os ícones ficam no grid
+        const KEY = 'luizos-icon-pos';
+        let saved = {};
+        try { saved = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) {}
+
+        document.querySelectorAll('.desktop-icon').forEach(icon => {
+            const id = icon.dataset.window;
+            if (saved[id] && typeof saved[id].x === 'number') {
+                icon.classList.add('icon-absolute');
+                // clamp: garante que o ícone não fique inalcançável após um resize
+                const maxX = window.innerWidth - icon.offsetWidth;
+                const maxY = window.innerHeight - document.getElementById('taskbar').offsetHeight - icon.offsetHeight;
+                icon.style.left = Math.max(0, Math.min(saved[id].x, maxX)) + 'px';
+                icon.style.top = Math.max(0, Math.min(saved[id].y, maxY)) + 'px';
+            }
+
+            icon.addEventListener('pointerdown', (e) => {
+                if (e.button !== 0) return;
+                const startX = e.clientX, startY = e.clientY;
+                const rect = icon.getBoundingClientRect();
+                let dragging = false, offX = 0, offY = 0;
+
+                const onMove = (ev) => {
+                    if (!dragging && Math.hypot(ev.clientX - startX, ev.clientY - startY) < 6) return;
+                    if (!dragging) {
+                        dragging = true;
+                        icon.classList.add('icon-absolute', 'dragging');
+                        icon.style.left = rect.left + 'px';
+                        icon.style.top = rect.top + 'px';
+                        offX = ev.clientX - rect.left;
+                        offY = ev.clientY - rect.top;
+                    }
+                    const maxX = window.innerWidth - icon.offsetWidth;
+                    const maxY = window.innerHeight - document.getElementById('taskbar').offsetHeight - icon.offsetHeight;
+                    icon.style.left = Math.max(0, Math.min(ev.clientX - offX, maxX)) + 'px';
+                    icon.style.top = Math.max(0, Math.min(ev.clientY - offY, maxY)) + 'px';
+                };
+
+                const onUp = () => {
+                    document.removeEventListener('pointermove', onMove);
+                    document.removeEventListener('pointerup', onUp);
+                    document.removeEventListener('pointercancel', onUp);
+                    icon.classList.remove('dragging');
+                    if (dragging) {
+                        saved[id] = { x: parseInt(icon.style.left, 10) || 0, y: parseInt(icon.style.top, 10) || 0 };
+                        try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch (e) { /* storage bloqueado */ }
+                    }
+                };
+                document.addEventListener('pointermove', onMove);
+                document.addEventListener('pointerup', onUp);
+                document.addEventListener('pointercancel', onUp);
+                try { icon.setPointerCapture(e.pointerId); } catch (err) { /* pointer já solto */ }
+            });
+        });
+
+        document.addEventListener('luizos:organize-icons', () => {
+            try { localStorage.removeItem(KEY); } catch (e) {}
+            document.querySelectorAll('.desktop-icon').forEach(icon => {
+                icon.classList.remove('icon-absolute');
+                icon.style.left = '';
+                icon.style.top = '';
+            });
+        });
+    }
+
+    // --- 20. KONAMI CODE ---
+    function initKonami() {
+        const SEQ = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'KeyB', 'KeyA'];
+        let idx = 0;
+        document.addEventListener('keydown', (e) => {
+            const tag = document.activeElement ? document.activeElement.tagName : null;
+            if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+            idx = (e.code === SEQ[idx]) ? idx + 1 : (e.code === SEQ[0] ? 1 : 0);
+            if (idx === SEQ.length) {
+                idx = 0;
+                Achievements.unlock('konami');
+                if (!MatrixRain.isActive()) MatrixRain.toggle();
+                document.body.setAttribute('data-crt', 'on');
+                try { saveSetting('crt', 'true'); } catch (err) { /* storage bloqueado */ }
+                const crtToggle = document.getElementById('crt-toggle');
+                if (crtToggle) crtToggle.checked = true;
+            }
+        });
+    }
+
+    // --- 21. EFEITO BSOD (TELA AZUL) ---
     function startInactivityTimer() {
         if (inactivityTimer) clearTimeout(inactivityTimer);
         inactivityTimer = setTimeout(showBSOD, 120000); // 2 minutos

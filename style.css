@@ -609,6 +609,225 @@ body[data-crt="on"] #crt-overlay {
 }
 .snake-dpad button:active { background-color: var(--highlight-bar-color); }
 
+/* 8.1 LUIZ IDE (Code.js) */
+.ide-body {
+    display: flex; flex-direction: column;
+    padding: 0; gap: 0;
+    overflow: hidden;
+}
+.ide-tabs { display: flex; background-color: var(--bg-color); border-bottom: 1px solid var(--border-color); }
+.ide-tab {
+    background: none; border: none; border-bottom: 2px solid transparent;
+    color: var(--text-secondary); font-family: 'Space Mono', monospace;
+    font-size: 0.8rem; padding: 8px 14px; cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+}
+.ide-tab:hover { color: var(--text-color); }
+.ide-tab.active { color: var(--highlight); border-bottom-color: var(--highlight); }
+.ide-editor {
+    flex: 1; overflow: auto;
+    background-color: var(--terminal-bg);
+    padding: 14px 16px;
+}
+.ide-editor pre { margin: 0; }
+.ide-editor code { font-family: 'Space Mono', monospace; font-size: 0.85rem; line-height: 1.55; white-space: pre; }
+.tok-com { color: var(--text-secondary); font-style: italic; }
+.tok-str { color: #A5D6FF; }
+.tok-kw { color: var(--highlight); font-weight: 700; }
+.tok-num { color: #FFA657; }
+.ide-playground {
+    flex: 1; resize: none; border: none; outline: none;
+    background-color: var(--terminal-bg); color: var(--text-color);
+    font-family: 'Space Mono', monospace; font-size: 0.85rem; line-height: 1.55;
+    padding: 14px 16px; min-height: 0;
+}
+.ide-toolbar {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 14px; border-top: 1px solid var(--border-color);
+    background-color: var(--window-bg);
+}
+#ide-run {
+    background-color: var(--highlight-bar-color); color: #fff;
+    border: none; border-radius: 5px;
+    font-family: 'Space Grotesk', sans-serif; font-weight: 700;
+    padding: 6px 16px; cursor: pointer;
+    transition: filter 0.15s, transform 0.15s;
+}
+#ide-run:hover { filter: brightness(1.2); transform: translateY(-1px); }
+.ide-hint { color: var(--text-secondary); font-size: 0.72rem; }
+.ide-console {
+    height: 110px; overflow-y: auto;
+    background-color: #010409; border-top: 1px solid var(--border-color);
+    padding: 10px 16px 16px;
+    font-family: 'Space Mono', monospace; font-size: 0.78rem;
+}
+.ide-console-line { color: var(--text-color); white-space: pre-wrap; }
+.ide-console-error { color: var(--error-color); }
+.ide-console-hint { color: var(--text-secondary); }
+
+/* 8.2 LUIZ BROWSER */
+.browser-body { display: flex; flex-direction: column; padding: 0; overflow: hidden; }
+.browser-toolbar { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background-color: var(--window-bg); border-bottom: 1px solid var(--border-color); }
+.browser-toolbar button {
+    background: var(--bg-color); border: 1px solid var(--border-color);
+    color: var(--text-color); border-radius: 5px;
+    width: 30px; height: 28px; cursor: pointer; font-size: 0.7rem;
+    transition: background-color 0.15s;
+}
+.browser-toolbar button:hover { background-color: var(--border-color); }
+.browser-addressbar {
+    flex: 1; display: flex; align-items: center; gap: 6px;
+    background-color: var(--terminal-bg);
+    border: 1px solid var(--border-color); border-radius: 14px;
+    padding: 4px 12px;
+}
+.browser-lock { font-size: 0.7rem; }
+#browser-address {
+    flex: 1; background: none; border: none; outline: none;
+    color: var(--text-color); font-family: 'Space Mono', monospace; font-size: 0.8rem;
+}
+.browser-loading { height: 3px; position: relative; overflow: hidden; }
+.browser-loading.active::after {
+    content: ''; position: absolute; top: 0; left: 0;
+    height: 100%; width: 40%;
+    background: linear-gradient(90deg, transparent, var(--highlight), transparent);
+    animation: browserLoad 0.9s ease-out forwards;
+}
+@keyframes browserLoad {
+    from { left: -40%; }
+    to { left: 100%; }
+}
+.browser-viewport { flex: 1; overflow-y: auto; background-color: var(--terminal-bg); }
+.bp { padding: 22px 26px; color: var(--text-color); }
+.bp h1 { font-family: 'Space Grotesk', sans-serif; color: var(--highlight); margin-bottom: 4px; }
+.bp-sub { color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 18px; }
+.bp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.bp-card {
+    display: flex; flex-direction: column; gap: 4px;
+    background-color: var(--window-bg); border: 1px solid var(--border-color);
+    border-radius: 10px; padding: 14px 16px;
+    text-decoration: none; color: var(--text-color);
+    font-family: 'Space Mono', monospace; font-size: 0.8rem;
+    cursor: pointer; text-align: left;
+    transition: transform 0.2s, border-color 0.2s;
+}
+.bp-card:hover { transform: translateY(-3px); border-color: var(--highlight-bar-color); }
+.bp-card strong { color: var(--link-color); font-size: 0.95rem; }
+.bp-card span { color: var(--text-secondary); font-size: 0.72rem; }
+.bp-list { list-style: none; }
+.bp-list li {
+    display: flex; align-items: baseline; gap: 10px;
+    padding: 10px 0; border-bottom: 1px solid var(--border-color);
+    font-size: 0.85rem;
+}
+.bp-list strong { color: var(--link-color); min-width: 120px; }
+.bp-list span { color: var(--text-secondary); flex: 1; }
+.bp-list a { color: var(--highlight); text-decoration: none; font-weight: 700; }
+.bp-center { text-align: center; padding-top: 60px; }
+.bp-center h1 { font-size: 3rem; }
+.bp-url {
+    font-family: 'Space Mono', monospace; background-color: var(--bg-color);
+    display: inline-block; padding: 6px 14px; border-radius: 6px;
+    border: 1px solid var(--border-color); font-size: 0.8rem;
+}
+.bp-button {
+    display: inline-block; margin: 10px 6px 0;
+    background-color: var(--highlight-bar-color); color: #fff;
+    border: none; border-radius: 6px; padding: 9px 18px;
+    font-family: 'Space Grotesk', sans-serif; font-weight: 700;
+    text-decoration: none; cursor: pointer; font-size: 0.85rem;
+    transition: filter 0.15s;
+}
+.bp-button:hover { filter: brightness(1.2); }
+.bp-button.secondary { background: none; border: 1px solid var(--highlight-bar-color); color: var(--highlight); }
+.bp-dim { color: var(--text-secondary); font-size: 0.85rem; }
+
+/* 8.3 WHATSAPP (Luiz Bot) */
+.chat-header { gap: 10px; cursor: default; }
+.chat-avatar { width: 30px; height: 30px; border-radius: 50%; }
+.chat-header-info { display: flex; flex-direction: column; line-height: 1.2; }
+.chat-header-info strong { font-family: 'Space Grotesk', sans-serif; font-size: 0.9rem; }
+#chat-status { color: var(--highlight); font-size: 0.7rem; }
+.chat-body {
+    display: flex; flex-direction: column;
+    padding: 0; gap: 0;
+    background: linear-gradient(180deg, #0B141A 0%, #111B21 100%);
+}
+.chat-messages {
+    flex: 1; overflow-y: auto;
+    padding: 14px 12px;
+    display: flex; flex-direction: column; gap: 8px;
+    min-height: 0;
+}
+.chat-msg { display: flex; flex-direction: column; max-width: 82%; animation: chatIn 0.18s ease-out; }
+@keyframes chatIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.chat-msg-bot { align-self: flex-start; }
+.chat-msg-user { align-self: flex-end; align-items: flex-end; }
+.chat-bubble {
+    background-color: #202C33; color: #E9EDEF;
+    border-radius: 10px; border-top-left-radius: 2px;
+    padding: 7px 10px;
+    font-size: 0.8rem; line-height: 1.4;
+    white-space: pre-wrap;
+    font-family: 'Space Mono', monospace;
+}
+.chat-msg-user .chat-bubble { background-color: #005C4B; border-radius: 10px; border-top-left-radius: 10px; border-top-right-radius: 2px; }
+.chat-time { color: #8696A0; font-size: 0.6rem; margin-top: 2px; align-self: flex-end; }
+.chat-bubble-typing { display: flex; gap: 4px; padding: 10px 12px; }
+.chat-bubble-typing i {
+    width: 6px; height: 6px; border-radius: 50%;
+    background-color: #8696A0;
+    animation: typingDot 1.1s infinite ease-in-out;
+}
+.chat-bubble-typing i:nth-child(2) { animation-delay: 0.18s; }
+.chat-bubble-typing i:nth-child(3) { animation-delay: 0.36s; }
+@keyframes typingDot {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+    30% { transform: translateY(-4px); opacity: 1; }
+}
+.chat-chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 12px; border-top: 1px solid var(--border-color); }
+.chat-chips:empty { display: none; }
+.chat-chip {
+    background-color: var(--window-bg); border: 1px solid var(--highlight-bar-color);
+    color: var(--text-color); border-radius: 16px;
+    padding: 6px 12px; font-size: 0.72rem;
+    font-family: 'Space Mono', monospace; cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.15s, transform 0.15s;
+}
+.chat-chip:hover { background-color: var(--highlight-bar-color); color: #fff; transform: translateY(-1px); }
+.chat-chip-mail { border-color: var(--link-color); color: var(--link-color); font-weight: 700; }
+
+/* 8.4 CONQUISTAS */
+.achievement-toast {
+    position: fixed; top: 18px; left: 50%;
+    transform: translateX(-50%);
+    display: flex; align-items: center; gap: 12px;
+    background-color: var(--window-bg);
+    border: 1px solid var(--highlight);
+    box-shadow: 0 0 24px var(--highlight-bar-color), 0 10px 30px rgba(0,0,0,0.5);
+    border-radius: 10px; padding: 12px 18px;
+    z-index: 99999;
+    animation: achIn 0.4s cubic-bezier(0.34, 1.4, 0.64, 1);
+    transition: opacity 0.5s, transform 0.5s;
+}
+.achievement-toast.out { opacity: 0; transform: translateX(-50%) translateY(-16px); }
+@keyframes achIn {
+    from { opacity: 0; transform: translateX(-50%) translateY(-24px) scale(0.9); }
+    to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
+.ach-icon { font-size: 1.6rem; }
+.ach-text { display: flex; flex-direction: column; line-height: 1.3; }
+.ach-text strong { font-family: 'Space Grotesk', sans-serif; color: var(--highlight); font-size: 0.85rem; }
+.ach-title { color: var(--text-color); font-size: 0.8rem; }
+
+/* 8.5 ÍCONES ARRASTÁVEIS */
+.desktop-icon.icon-absolute { position: absolute; margin: 0; z-index: 5; }
+.desktop-icon.dragging { opacity: 0.85; transform: scale(1.08); cursor: grabbing; }
+
 /* 9. TELAS DE EFEITO (BSOD, SHUTDOWN) */
 #bsod-screen {
     position: fixed; top: 0; left: 0;
@@ -694,6 +913,10 @@ body[data-crt="on"] #crt-overlay {
 
     .snake-dpad { display: flex; }
     #snake-canvas { width: 100%; height: auto; }
+
+    .desktop-icon.icon-absolute { position: static; left: auto; top: auto; }
+    .ide-body { min-height: 0; }
+    .bp-grid { grid-template-columns: 1fr; }
 
     #boot-logo { font-size: clamp(0.35rem, 2.4vw, 0.9rem); }
     #bsod-screen { padding: 8%; overflow-y: auto; }
