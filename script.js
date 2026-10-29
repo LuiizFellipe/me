@@ -920,6 +920,8 @@ Email:    <a href="mailto:${LINKS.email}">${LINKS.email}</a>`,
             }
             // Esc: fecha menu de contexto → menu iniciar → minimiza a janela focada
             if (e.key === 'Escape') {
+                const tag = document.activeElement ? document.activeElement.tagName : null;
+                if (tag === 'INPUT' || tag === 'TEXTAREA') return; // digitando: Esc não minimiza janela
                 if (!contextMenuEl.classList.contains('hidden')) {
                     contextMenuEl.classList.add('hidden');
                     return;
@@ -1243,6 +1245,11 @@ Email:    <a href="mailto:${LINKS.email}">${LINKS.email}</a>`,
     })();
 
     // --- 16. LUIZ IDE (Code.js) ---
+    const PLAYGROUND_DEFAULT = `// Escreva JavaScript e clique em RUN
+console.log("Ola, visitante! 👋");
+
+const stack = ["TypeScript", "Next.js", "NestJS", "Supabase"];
+stack.forEach((tech, i) => console.log("Stack[" + i + "]:", tech));`;
     const IDE_FILES = {
         'sobre.js': `const luiz = {
   nome: "Luiz Felipe Andrich",
@@ -1255,20 +1262,31 @@ Email:    <a href="mailto:${LINKS.email}">${LINKS.email}</a>`,
 echo "LinkedIn: ${LINKS.linkedin}"
 echo "GitHub:   ${LINKS.github}"
 echo "Email:    ${LINKS.email}"
-# aberto a oportunidades`
-    };
-    const PLAYGROUND_DEFAULT = `// Escreva JavaScript e clique em RUN
-console.log("Ola, visitante! 👋");
+# aberto a oportunidades`,
+        'README.md': `# LuizOS
 
-const stack = ["TypeScript", "Next.js", "NestJS", "Supabase"];
-stack.forEach((tech, i) => console.log("Stack[" + i + "]:", tech));`;
+Portfolio que simula um desktop de sistema operacional
+direto no navegador, em JavaScript puro.
+
+## Apps
+- Terminal com comandos reais
+- IDE (voce esta aqui)
+- Luiz Browser
+- Luiz Bot (WhatsApp)
+- Snake.exe
+
+## Autor
+Luiz Felipe Andrich — AI Engineer & Fullstack Dev
+https://luizfelipe.dev.br`,
+        'playground.js': PLAYGROUND_DEFAULT
+    };
 
     function highlightCode(code) {
-        const pattern = /(\/\/[^\n]*|#[^\n]*)|("(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*')|\b(const|let|var|function|return|if|else|for|while|new|echo|async|await)\b|(\d+)/g;
+        const pattern = /(\/\/[^\n]*|#[^\n]*)|("(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*')|\b(const|let|var|function|return|if|else|for|while|new|echo|async|await|class|import|from|export|true|false|null|undefined)\b|(\d+(?:\.\d+)?)|([A-Za-z_$][\w$]*)(?=\s*\()/g;
         let out = '', last = 0, m;
         while ((m = pattern.exec(code)) !== null) {
             out += escapeHTML(code.slice(last, m.index));
-            const cls = m[1] ? 'tok-com' : m[2] ? 'tok-str' : m[3] ? 'tok-kw' : 'tok-num';
+            const cls = m[1] ? 'tok-com' : m[2] ? 'tok-str' : m[3] ? 'tok-kw' : m[4] ? 'tok-num' : 'tok-fn';
             out += '<span class="' + cls + '">' + escapeHTML(m[0]) + '</span>';
             last = m.index + m[0].length;
         }
@@ -1277,32 +1295,322 @@ stack.forEach((tech, i) => console.log("Stack[" + i + "]:", tech));`;
     }
 
     function initIdeApp() {
-        const codeEl = document.getElementById('ide-code');
-        const editorEl = document.getElementById('ide-editor');
+        const highlightEl = document.getElementById('ide-highlight');
+        const editorWrap = document.getElementById('ide-editor-wrap');
+        const gutterEl = document.getElementById('ide-gutter');
+        const minimapEl = document.getElementById('ide-minimap');
         const playgroundEl = document.getElementById('ide-playground');
         const consoleEl = document.getElementById('ide-console');
-        if (!codeEl) return;
+        const posEl = document.getElementById('ide-pos');
+        const langEl = document.getElementById('ide-lang');
+        const treeListEl = document.getElementById('ide-tree-list');
+        const tabsEl = document.getElementById('ide-tabs');
+        const saveStateEl = document.getElementById('ide-save-state');
+        if (!highlightEl || !treeListEl) return;
 
-        playgroundEl.value = PLAYGROUND_DEFAULT;
+        const FILES_KEY = 'luizos-ide-files';
+        const NAME_RE = /^[A-Za-z0-9_.-]+$/;
+        const LANG_BY_EXT = { js: 'JavaScript', sh: 'Shell Script', md: 'Markdown' };
+        let files = {};
+        let openTabs = [];
+        let activeFile = null;
+        const modified = new Set();
+        let currentRun = null;
+        let outputSnapshot = null;
 
-        function openFile(name) {
-            document.querySelectorAll('.ide-tab').forEach(t => t.classList.toggle('active', t.dataset.file === name));
-            if (name === 'playground.js') {
-                editorEl.classList.add('hidden');
-                playgroundEl.classList.remove('hidden');
-            } else {
-                playgroundEl.classList.add('hidden');
-                editorEl.classList.remove('hidden');
-                codeEl.innerHTML = highlightCode(IDE_FILES[name] || '');
+        function loadFiles() {
+            files = Object.assign({}, IDE_FILES); // padrões do sistema
+            try {
+                const stored = JSON.parse(localStorage.getItem(FILES_KEY) || '{}');
+                if (stored && typeof stored === 'object') {
+                    Object.keys(stored).forEach(k => {
+                        if (NAME_RE.test(k) && k !== '__proto__' && typeof stored[k] === 'string') files[k] = stored[k]; // edições e arquivos criados
+                    });
+                }
+            } catch (e) { /* storage corrompido: segue com os padrão */ }
+            openTabs = ['sobre.js', 'contato.sh', 'README.md', 'playground.js'].filter(n => files[n] !== undefined);
+            if (!openTabs.length) {
+                files['novo-arquivo.js'] = ''; // workspace vazio: cria um arquivo pra começar
+                openTabs = ['novo-arquivo.js'];
+            }
+            activeFile = openTabs[0];
+        }
+
+        function persistFiles() {
+            try {
+                localStorage.setItem(FILES_KEY, JSON.stringify(files));
+                return true;
+            } catch (e) {
+                renderConsole([], 'Falha ao salvar no navegador (limite do localStorage?). O conteúdo existe apenas nesta sessão.');
+                return false;
             }
         }
 
-        document.querySelectorAll('.ide-tab').forEach(tab => {
-            tab.addEventListener('click', () => { SFX.click(); openFile(tab.dataset.file); });
+        function extOf(name) { return (name.split('.').pop() || '').toLowerCase(); }
+        function isRunnable(name) { return extOf(name) === 'js'; }
+
+        function renderTree() {
+            const names = Object.keys(files).sort((a, b) => a.localeCompare(b));
+            treeListEl.innerHTML = '';
+            names.forEach(name => {
+                const row = document.createElement('button');
+                row.type = 'button';
+                row.className = 'vsc-file' + (name === activeFile ? ' active' : '');
+                row.dataset.file = name;
+                const e2 = extOf(name);
+                row.innerHTML = '<span class="vsc-badge ' + escapeHTML(e2) + '">' + escapeHTML(e2.slice(0, 2).toUpperCase()) + '</span> ' + escapeHTML(name) + '<span class="vsc-file-delete" title="Deletar arquivo">×</span>';
+                row.addEventListener('click', (ev) => {
+                    if (ev.target.classList.contains('vsc-file-delete')) { deleteFile(name); return; }
+                    openFile(name);
+                });
+                treeListEl.appendChild(row);
+            });
+        }
+
+        function renderTabs() {
+            tabsEl.innerHTML = '';
+            openTabs.forEach(name => {
+                const tab = document.createElement('button');
+                tab.type = 'button';
+                tab.className = 'vsc-tab' + (name === activeFile ? ' active' : '');
+                tab.dataset.file = name;
+                const e2 = extOf(name);
+                tab.innerHTML = '<span class="vsc-badge ' + escapeHTML(e2) + '">' + escapeHTML(e2.slice(0, 2).toUpperCase()) + '</span> ';
+                const label = document.createElement('span');
+                label.textContent = (modified.has(name) ? '● ' : '') + name;
+                tab.appendChild(label);
+                const close = document.createElement('span');
+                close.className = 'vsc-tab-close';
+                close.textContent = '×';
+                close.title = 'Fechar aba';
+                close.addEventListener('click', (ev) => { ev.stopPropagation(); closeTab(name); });
+                tab.appendChild(close);
+                tab.addEventListener('click', () => openFile(name));
+                tabsEl.appendChild(tab);
+            });
+            const runBtn = document.getElementById('ide-run');
+            if (runBtn) {
+                const runnable = activeFile !== null && isRunnable(activeFile);
+                runBtn.disabled = !runnable;
+                runBtn.title = runnable
+                    ? 'Run Code — compila e roda ' + activeFile + ' no sandbox (timeout 2s)'
+                    : 'Run funciona apenas em arquivos .js';
+            }
+        }
+
+        function renderSaveState() {
+            if (!saveStateEl) return;
+            saveStateEl.textContent = activeFile ? (modified.has(activeFile) ? '● não salvo — Ctrl+S' : '✓ salvo') : '—';
+        }
+
+        let visualRaf = null;
+        function updateEditorVisuals() {
+            const content = activeFile !== null ? (files[activeFile] || '') : '';
+            highlightEl.innerHTML = highlightCode(content) + '\n';
+            const lines = content.split('\n');
+            const lineCount = Math.min(lines.length, 2000); // cap: arquivos gigantes não travam o gutter
+            let gutter = '';
+            for (let i = 1; i <= lineCount; i++) gutter += '<div class="vsc-ln">' + i + '</div>';
+            gutterEl.innerHTML = gutter;
+            minimapEl.innerHTML = lines.slice(0, 160)
+                .map(l => '<div class="mm-line" style="width:' + Math.min(l.trim().length * 1.5 + 6, 58) + 'px"></div>').join('');
+        }
+
+        function scheduleVisuals() {
+            if (visualRaf) return;
+            visualRaf = requestAnimationFrame(() => { visualRaf = null; updateEditorVisuals(); });
+        }
+
+        function updateMinimapScroll() {
+            const ratio = Math.max(1, playgroundEl.scrollHeight - playgroundEl.clientHeight);
+            minimapEl.scrollTop = (playgroundEl.scrollTop / ratio) * Math.max(0, minimapEl.scrollHeight - minimapEl.clientHeight);
+        }
+
+        function syncScroll() {
+            highlightEl.scrollTop = playgroundEl.scrollTop;
+            highlightEl.scrollLeft = playgroundEl.scrollLeft;
+            gutterEl.scrollTop = playgroundEl.scrollTop;
+            updateMinimapScroll();
+        }
+
+        function updatePos() {
+            if (!activeFile) return;
+            const upto = (files[activeFile] || '').substring(0, playgroundEl.selectionStart || 0);
+            const lines = upto.split('\n');
+            if (posEl) posEl.textContent = 'Ln ' + lines.length + ', Col ' + (lines[lines.length - 1].length + 1);
+        }
+
+        function openFile(name) {
+            if (!files.hasOwnProperty(name)) return;
+            activeFile = name;
+            if (!openTabs.includes(name)) openTabs.push(name);
+            playgroundEl.classList.remove('hidden');
+            playgroundEl.value = files[name] || '';
+            const e2 = extOf(name);
+            if (langEl) langEl.textContent = Object.prototype.hasOwnProperty.call(LANG_BY_EXT, e2) ? LANG_BY_EXT[e2] : 'Plain Text';
+            renderTabs();
+            renderTree();
+            updateEditorVisuals();
+            updatePos();
+            renderSaveState();
+            syncScroll();
+            playgroundEl.scrollTop = 0;
+            playgroundEl.scrollLeft = 0;
+            SFX.click();
+        }
+
+        function closeTab(name) {
+            const idx = openTabs.indexOf(name);
+            openTabs = openTabs.filter(n => n !== name);
+            if (activeFile === name) {
+                const next = openTabs[Math.max(0, idx - 1)];
+                if (next) { openFile(next); return; }
+                closeEditor();
+                return;
+            }
+            renderTabs();
+            renderTree();
+        }
+
+        function closeEditor() {
+            // mobile não tem sidebar: nunca deixa o editor sem arquivo para reabrir
+            const sidebar = document.querySelector('.vscode-sidebar');
+            const sidebarVisible = !sidebar || getComputedStyle(sidebar).display !== 'none';
+            if (!sidebarVisible) {
+                const first = Object.keys(files).sort((a, b) => a.localeCompare(b))[0];
+                if (first) { openFile(first); return; }
+            }
+            activeFile = null;
+            tabsEl.innerHTML = '';
+            highlightEl.innerHTML = '<span class="ide-console-hint">// abra um arquivo no Explorer para editar</span>';
+            gutterEl.innerHTML = '';
+            minimapEl.innerHTML = '';
+            playgroundEl.classList.add('hidden');
+            playgroundEl.value = '';
+            if (langEl) langEl.textContent = 'Plain Text';
+            if (posEl) posEl.textContent = 'Ln 1, Col 1';
+            const runBtn = document.getElementById('ide-run');
+            if (runBtn) runBtn.disabled = true;
+            renderTree();
+            renderSaveState();
+        }
+
+        function deleteFile(name) {
+            const warn = modified.has(name) ? ' Há alterações não salvas.' : '';
+            if (!window.confirm('Deletar "' + name + '"?' + warn)) return;
+            SFX.click();
+            delete files[name];
+            openTabs = openTabs.filter(n => n !== name);
+            modified.delete(name);
+            persistFiles();
+            if (activeFile === name) {
+                const next = openTabs.find(n => files[n] !== undefined);
+                if (next) { openFile(next); renderTabs(); renderTree(); return; }
+                if (Object.keys(files).length === 0) { createFile('novo-arquivo.js', ''); return; }
+                closeEditor();
+                return;
+            }
+            renderTabs();
+            renderTree();
+        }
+
+        function createFile(name, content) {
+            if (!name || name === '__proto__' || !NAME_RE.test(name) || !/[A-Za-z0-9]/.test(name) || files.hasOwnProperty(name)) return false;
+            files[name] = content || '';
+            persistFiles();
+            openFile(name);
+            return true;
+        }
+
+        function markDirty(name) {
+            modified.add(name);
+            renderTabs();
+            renderSaveState();
+        }
+
+        function saveActive() {
+            if (!activeFile) return;
+            files[activeFile] = playgroundEl.value;
+            modified.delete(activeFile);
+            const ok = persistFiles();
+            renderTabs();
+            if (saveStateEl) saveStateEl.textContent = ok ? '✓ salvo' : '⚠ storage cheio';
+        }
+
+        // Ctrl+S / Cmd+S salva o arquivo ativo quando a IDE está em foco
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's' && focusedWindowId === 'ide-window') {
+                e.preventDefault();
+                saveActive();
+            }
         });
-        openFile('sobre.js');
+
+        playgroundEl.addEventListener('input', () => {
+            if (!activeFile) return;
+            files[activeFile] = playgroundEl.value;
+            markDirty(activeFile);
+            scheduleVisuals();
+            updatePos();
+        });
+        playgroundEl.addEventListener('scroll', syncScroll);
+        playgroundEl.addEventListener('keyup', updatePos);
+        playgroundEl.addEventListener('click', updatePos);
+
+        // novo arquivo (input inline no Explorer)
+        const newBtn = document.getElementById('ide-new-file');
+        const newRow = document.getElementById('ide-newfile-row');
+        const newInput = document.getElementById('ide-newfile-input');
+        if (newBtn && newRow && newInput) {
+            newBtn.addEventListener('click', () => {
+                newRow.classList.remove('hidden');
+                newInput.value = '';
+                newInput.focus();
+                SFX.click();
+            });
+            const commitNew = () => {
+                const name = newInput.value.trim();
+                newRow.classList.add('hidden');
+                if (!name) return;
+                if (files.hasOwnProperty(name)) {
+                    renderConsole([], 'Já existe um arquivo chamado "' + escapeHTML(name) + '".');
+                    return;
+                }
+                if (!/^[A-Za-z0-9_.-]+$/.test(name)) {
+                    renderConsole([], 'Nome inválido: use letras, números, ponto, hífen ou underline.');
+                    return;
+                }
+                createFile(name, '');
+            };
+            newInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') commitNew();
+                else if (e.key === 'Escape') newRow.classList.add('hidden');
+            });
+            newInput.addEventListener('blur', () => {
+                if (!newInput.value.trim()) newRow.classList.add('hidden');
+            });
+        }
+
+        // painel OUTPUT / PROBLEMAS
+        document.querySelectorAll('.vsc-panel-tab').forEach(pt => {
+            pt.addEventListener('click', () => {
+                if (pt.classList.contains('active')) return;
+                document.querySelectorAll('.vsc-panel-tab').forEach(x => x.classList.toggle('active', x === pt));
+                if (pt.dataset.panel === 'problems') {
+                    outputSnapshot = consoleEl.innerHTML;
+                    consoleEl.innerHTML = '<span class="ide-console-hint">✓ No problems have been detected in the workspace.</span>';
+                } else if (outputSnapshot !== null) {
+                    consoleEl.innerHTML = outputSnapshot;
+                }
+                SFX.click();
+            });
+        });
+
+        loadFiles();
+        openFile(activeFile);
 
         function renderConsole(lines, error) {
+            outputSnapshot = null;
+            document.querySelectorAll('.vsc-panel-tab').forEach(x => x.classList.toggle('active', x.dataset.panel === 'output'));
             consoleEl.innerHTML = '';
             lines.slice(0, 500).forEach(l => {
                 const line = document.createElement('div');
@@ -1325,8 +1633,6 @@ stack.forEach((tech, i) => console.log("Stack[" + i + "]:", tech));`;
             consoleEl.scrollTop = consoleEl.scrollHeight;
         }
 
-        let currentRun = null;
-
         document.getElementById('ide-run').addEventListener('click', () => {
             SFX.click();
             // cancela o run anterior (worker, timeout e blob URL)
@@ -1336,8 +1642,14 @@ stack.forEach((tech, i) => console.log("Stack[" + i + "]:", tech));`;
                 if (currentRun.url) URL.revokeObjectURL(currentRun.url);
                 currentRun = null;
             }
+            if (!activeFile || !isRunnable(activeFile)) {
+                renderConsole([], 'O Run compila apenas arquivos .js — o arquivo atual é .' + extOf(activeFile || 'txt') + '.');
+                return;
+            }
+            outputSnapshot = null;
+            document.querySelectorAll('.vsc-panel-tab').forEach(x => x.classList.toggle('active', x.dataset.panel === 'output'));
             const code = playgroundEl.value;
-            consoleEl.innerHTML = '<span class="ide-console-hint">▶ executando...</span>';
+            consoleEl.innerHTML = '<span class="ide-console-hint">▶ compilando e executando ' + escapeHTML(activeFile) + '...</span>';
             let settled = false;
             const finish = (payload) => {
                 if (settled) return;

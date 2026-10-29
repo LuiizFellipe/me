@@ -25,7 +25,7 @@
     <meta name="twitter:description"
         content="Um portfólio que é um sistema operacional no navegador. Abra o terminal, explore os projetos e tente o 'sudo'.">
     <meta name="twitter:image" content="https://luizfelipe.dev.br/assets/og-image.jpg">
-    <link rel="stylesheet" href="style.css?v=2026.11">
+    <link rel="stylesheet" href="style.css?v=2026.12b">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -310,7 +310,7 @@
             </div>
         </div>
 
-        <div id="ide-window" class="window hidden" style="width: 640px; height: 520px;">
+        <div id="ide-window" class="window hidden" style="width: 800px; height: 560px;">
             <div class="window-header">
                 <span class="window-title">Code.js — Luiz IDE</span>
                 <div class="window-controls">
@@ -319,21 +319,71 @@
                     <button class="window-close" data-window="ide-window" aria-label="Fechar">×</button>
                 </div>
             </div>
-            <div class="window-body ide-body">
-                <div class="ide-tabs">
-                    <button class="ide-tab active" data-file="sobre.js" type="button">sobre.js</button>
-                    <button class="ide-tab" data-file="contato.sh" type="button">contato.sh</button>
-                    <button class="ide-tab" data-file="playground.js" type="button">playground.js ✎</button>
+            <div class="vscode">
+                <div class="vscode-activity">
+                    <button class="vsc-act active" type="button" title="Explorer">
+                        <svg viewBox="0 0 24 24" width="20" height="20"><path fill="#D4D4D4" d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/></svg>
+                    </button>
+                    <button class="vsc-act" type="button" title="Search">
+                        <svg viewBox="0 0 24 24" width="20" height="20"><path fill="#8A8A8A" d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5A6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5A4.5 4.5 0 0 1 9.5 14z"/></svg>
+                    </button>
+                    <button class="vsc-act" type="button" title="Source Control">
+                        <svg viewBox="0 0 24 24" width="20" height="20"><path fill="#8A8A8A" d="M7 8a3 3 0 1 0 2.83 4h.51c.9 0 1.66.7 1.66 1.62V16a3 3 0 1 0 2 0v-2.38c0-1.97-1.66-3.62-3.66-3.62h-.51A3 3 0 0 0 7 8z"/></svg>
+                    </button>
+                    <button class="vsc-act" type="button" title="Extensions">
+                        <svg viewBox="0 0 24 24" width="20" height="20"><path fill="#8A8A8A" d="M10 2v4h4V2h-4zm-2 6H4v4h4V8zm6 0h-4v4h4V8zm6 0h-4v4h4V8zm-12 6H4v4h4v-4zm6 0h-4v4h4v-4zm6 0h-4v4h4v-4z"/></svg>
+                    </button>
                 </div>
-                <div class="ide-editor" id="ide-editor"><pre><code id="ide-code"></code></pre></div>
-                <textarea id="ide-playground" class="ide-playground hidden" spellcheck="false"
-                    autocapitalize="none" autocomplete="off"></textarea>
-                <div class="ide-toolbar">
-                    <button id="ide-run" type="button">▶ RUN</button>
-                    <span class="ide-hint">playground.js roda de verdade num sandbox (timeout de 2s)</span>
+                <div class="vscode-sidebar">
+                    <div class="vsc-side-title">EXPLORER</div>
+                    <div class="vsc-tree-actions">
+                        <button id="ide-new-file" type="button" title="Novo arquivo">+ Novo arquivo</button>
+                    </div>
+                    <div id="ide-newfile-row" class="vsc-newfile hidden">
+                        <input id="ide-newfile-input" type="text" placeholder="nome.js" spellcheck="false"
+                            autocapitalize="none" autocomplete="off">
+                    </div>
+                    <div class="vsc-tree">
+                        <div class="vsc-folder">▾ LUIZOS</div>
+                        <div id="ide-tree-list"></div>
+                    </div>
                 </div>
-                <div class="ide-console" id="ide-console">
-                    <span class="ide-console-hint">// a saída do console aparece aqui</span>
+                <div class="vscode-main">
+                    <div class="vscode-tabs">
+                        <div id="ide-tabs" class="vsc-tabstrip">
+                            <button class="vsc-tab active" data-file="sobre.js" type="button"><span class="vsc-badge js">JS</span> sobre.js</button>
+                            <button class="vsc-tab" data-file="contato.sh" type="button"><span class="vsc-badge sh">SH</span> contato.sh</button>
+                            <button class="vsc-tab" data-file="README.md" type="button"><span class="vsc-badge md">M↓</span> README.md</button>
+                            <button class="vsc-tab" data-file="playground.js" type="button"><span class="vsc-badge js">JS</span> playground.js</button>
+                        </div>
+                        <button id="ide-run" type="button" title="Run Code — roda o playground.js num sandbox real (timeout 2s)">▶</button>
+                    </div>
+                    <div class="vscode-editor-wrap" id="ide-editor-wrap">
+                        <div class="vsc-gutter" id="ide-gutter"></div>
+                        <pre class="vsc-code" id="ide-highlight"></pre>
+                        <textarea id="ide-playground" class="vsc-input" spellcheck="false"
+                            autocapitalize="none" autocomplete="off" wrap="off"></textarea>
+                        <div class="vscode-minimap" id="ide-minimap"></div>
+                    </div>
+                    <div class="vscode-panel">
+                        <div class="vsc-panel-tabs">
+                            <button class="vsc-panel-tab active" data-panel="output" type="button">OUTPUT</button>
+                            <button class="vsc-panel-tab" data-panel="problems" type="button">PROBLEMAS</button>
+                            <span class="vsc-panel-hint">playground.js roda num sandbox real · timeout 2s</span>
+                        </div>
+                        <div class="vsc-panel-body" id="ide-console">
+                            <span class="ide-console-hint">// a saída aparece aqui — abra playground.js e clique ▶</span>
+                        </div>
+                    </div>
+                    <div class="vscode-statusbar">
+                        <span class="vsc-status-item">Git: main</span>
+                        <span class="vsc-status-item" id="ide-save-state">✓ salvo</span>
+                        <span class="vsc-status-spacer"></span>
+                        <span class="vsc-status-item" id="ide-pos">Ln 1, Col 1</span>
+                        <span class="vsc-status-item">Spaces: 2</span>
+                        <span class="vsc-status-item" id="ide-lang">JavaScript</span>
+                        <span class="vsc-status-item vsc-status-brand">LuizOS v2.1</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -486,7 +536,7 @@
         <p>Obrigado pela visita!</p>
     </div>
 
-    <script src="script.js?v=2026.11"></script>
+    <script src="script.js?v=2026.12b"></script>
 </body>
 
 </html>
